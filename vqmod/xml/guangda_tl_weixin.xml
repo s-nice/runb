@@ -1,0 +1,41 @@
+<modification>
+	<id>guangda_tl_weixin_login_and_payment</id>
+	<version>For OpenCart 2.0.x</version>
+    <vqmver>2.5.1</vqmver>
+   <author>GuangDa-TL Mail:support@opencart.cn</author>
+	<email>support@opencart.cn</email>
+	<website>http://www.opencart.cn</website>
+	
+	
+	<file name="system/library/customer.php">
+		<operation>
+			<search position="before"><![CDATA[
+	public function login
+			]]></search>
+			<add><![CDATA[
+	public function loginWithOpenid($openid) {
+		$customer_query = $this->db->query("SELECT * FROM " . DB_PREFIX . "customer WHERE openid = '" . $openid . "' AND status = '1'");
+
+		if ($customer_query->num_rows) {
+			$this->session->data['customer_id'] = $customer_query->row['customer_id'];
+
+			$this->customer_id = $customer_query->row['customer_id'];
+			$this->firstname = $customer_query->row['firstname'];
+			$this->customer_group_id = $customer_query->row['customer_group_id'];
+			$this->email = $customer_query->row['email'];
+			$this->telephone = $customer_query->row['telephone'];
+			$this->fax = $customer_query->row['fax'];
+			$this->newsletter = $customer_query->row['newsletter'];
+			$this->address_id = $customer_query->row['address_id'];
+
+			$this->db->query("UPDATE " . DB_PREFIX . "customer SET ip = '" . $this->db->escape($this->request->server['REMOTE_ADDR']) . "' WHERE customer_id = '" . (int)$this->customer_id . "'");
+
+			return true;
+		} else {
+			return false;
+		}
+	}
+			]]></add>
+		</operation>
+	</file>
+</modification>

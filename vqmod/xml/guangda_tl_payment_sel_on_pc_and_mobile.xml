@@ -1,0 +1,247 @@
+<modification>
+	<id>Payment_set_on_pc_or_mobile</id>
+	<version>For OpenCart 2.0.1.1</version>
+	<vqmver>2.5.1.1</vqmver>
+	<author>GuangDa email: suport@opencart.cn</author> 
+	
+	<file name="admin/view/template/setting/setting.tpl">
+		<operation>
+			<search position="before" offset="1"><![CDATA[
+                  <label class="col-sm-2 control-label" for="input-process-status"><span data-toggle="tooltip" title="<?php echo $help_processing_status; ?>"><?php echo $entry_processing_status; ?></span></label>
+			]]></search>
+			<add><![CDATA[
+                <div class="form-group">
+                  <label class="col-sm-2 control-label" for="input-pc-payment"><span data-toggle="tooltip" title="<?php echo $help_pc_payment; ?>"><?php echo $entry_pc_payment; ?></span></label>
+                  <div class="col-sm-10">
+                    <div class="well well-sm" style="height: 150px; overflow: auto;">
+                      <?php foreach ($payments as $payment) { ?>
+                      <div class="checkbox">
+                        <label>
+                          <?php if (in_array($payment['code'], $config_pc_payment)) { ?>
+                          <input type="checkbox" name="config_pc_payment[]" value="<?php echo $payment['code']; ?>" checked="checked" />
+                          <?php echo $payment['title']; ?>
+                          <?php } else { ?>
+                          <input type="checkbox" name="config_pc_payment[]" value="<?php echo $payment['code']; ?>" />
+                          <?php echo $payment['title']; ?>
+                          <?php } ?>
+                        </label>
+                      </div>
+                      <?php } ?>
+                    </div>
+                    <?php if ($error_pc_payment) { ?>
+                    <div class="text-danger"><?php echo $error_pc_payment; ?></div>
+                    <?php } ?>
+                  </div>
+                </div>
+                
+                <div class="form-group">
+                  <label class="col-sm-2 control-label" for="input-mobile-payment"><span data-toggle="tooltip" title="<?php echo $help_mobile_payment; ?>"><?php echo $entry_mobile_payment; ?></span></label>
+                  <div class="col-sm-10">
+                    <div class="well well-sm" style="height: 150px; overflow: auto;">
+                      <?php foreach ($payments as $payment) { ?>
+                      <div class="checkbox">
+                        <label>
+                          <?php if (in_array($payment['code'], $config_mobile_payment)) { ?>
+                          <input type="checkbox" name="config_mobile_payment[]" value="<?php echo $payment['code']; ?>" checked="checked" />
+                          <?php echo $payment['title']; ?>
+                          <?php } else { ?>
+                          <input type="checkbox" name="config_mobile_payment[]" value="<?php echo $payment['code']; ?>" />
+                          <?php echo $payment['title']; ?>
+                          <?php } ?>
+                        </label>
+                      </div>
+                      <?php } ?>
+                    </div>
+                    <?php if ($error_mobile_payment) { ?>
+                    <div class="text-danger"><?php echo $error_mobile_payment; ?></div>
+                    <?php } ?>
+                  </div>
+                </div>
+                
+                <div class="form-group">
+                  <label class="col-sm-2 control-label" for="input-weixin-payment"><span data-toggle="tooltip" title="<?php echo $help_weixin_payment; ?>"><?php echo $entry_weixin_payment; ?></span></label>
+                  <div class="col-sm-10">
+                    <div class="well well-sm" style="height: 150px; overflow: auto;">
+                      <?php foreach ($payments as $payment) { ?>
+                      <div class="checkbox">
+                        <label>
+                          <?php if (in_array($payment['code'], $config_weixin_payment)) { ?>
+                          <input type="checkbox" name="config_weixin_payment[]" value="<?php echo $payment['code']; ?>" checked="checked" />
+                          <?php echo $payment['title']; ?>
+                          <?php } else { ?>
+                          <input type="checkbox" name="config_weixin_payment[]" value="<?php echo $payment['code']; ?>" />
+                          <?php echo $payment['title']; ?>
+                          <?php } ?>
+                        </label>
+                      </div>
+                      <?php } ?>
+                    </div>
+                    <?php if ($error_weixin_payment) { ?>
+                    <div class="text-danger"><?php echo $error_weixin_payment; ?></div>
+                    <?php } ?>
+                  </div>
+                </div>
+			]]></add>
+		</operation>
+	</file>
+
+	<file name="admin/controller/setting/setting.php">
+		<operation>
+			<search position="after"><![CDATA[
+		$data['entry_processing_status'] = $this->language->get('entry_processing_status');
+			]]></search>
+			<add><![CDATA[
+		$data['entry_pc_payment'] = $this->language->get('entry_pc_payment');
+		$data['help_pc_payment'] = $this->language->get('help_pc_payment');
+		$data['entry_mobile_payment'] = $this->language->get('entry_mobile_payment');
+		$data['help_mobile_payment'] = $this->language->get('help_mobile_payment');
+		$data['entry_weixin_payment'] = $this->language->get('entry_weixin_payment');
+		$data['help_weixin_payment'] = $this->language->get('help_weixin_payment');
+			]]></add>
+		</operation>
+		<operation>
+			<search position="before"><![CDATA[
+		if (isset($this->error['processing_status'])) {
+			]]></search>
+			<add><![CDATA[
+		if (isset($this->error['pc_payment'])) {
+			$data['error_pc_payment'] = $this->error['pc_payment'];
+		} else {
+			$data['error_pc_payment'] = '';
+		}
+		if (isset($this->error['mobile_payment'])) {
+			$data['error_mobile_payment'] = $this->error['mobile_payment'];
+		} else {
+			$data['error_mobile_payment'] = '';
+		}
+		if (isset($this->error['weixin_payment'])) {
+			$data['error_weixin_payment'] = $this->error['weixin_payment'];
+		} else {
+			$data['error_weixin_payment'] = '';
+		}
+			]]></add>
+		</operation>
+		<operation>
+			<search position="before"><![CDATA[
+		if (isset($this->request->post['config_processing_status'])) {
+			]]></search>
+			<add><![CDATA[
+		if (isset($this->request->post['config_pc_payment'])) {
+			$data['config_pc_payment'] = $this->request->post['config_pc_payment'];
+		} elseif ($this->config->get('config_pc_payment')) {
+			$data['config_pc_payment'] = $this->config->get('config_pc_payment');
+		} else {
+			$data['config_pc_payment'] = array();
+		}
+
+		if (isset($this->request->post['config_mobile_payment'])) {
+			$data['config_mobile_payment'] = $this->request->post['config_mobile_payment'];
+		} elseif ($this->config->get('config_mobile_payment')) {
+			$data['config_mobile_payment'] = $this->config->get('config_mobile_payment');
+		} else {
+			$data['config_mobile_payment'] = array();
+		}
+
+		if (isset($this->request->post['config_weixin_payment'])) {
+			$data['config_weixin_payment'] = $this->request->post['config_weixin_payment'];
+		} elseif ($this->config->get('config_weixin_payment')) {
+			$data['config_weixin_payment'] = $this->config->get('config_weixin_payment');
+		} else {
+			$data['config_weixin_payment'] = array();
+		}
+			]]></add>
+		</operation>
+		<operation>
+			<search position="before"><![CDATA[
+		if (!isset($this->request->post['config_processing_status'])) {
+			]]></search>
+			<add><![CDATA[
+		if (!isset($this->request->post['config_pc_payment'])) {
+			$this->error['pc_payment'] = $this->language->get('error_pc_payment');
+		}
+
+		if (!isset($this->request->post['config_mobile_payment'])) {
+			$this->error['mobile_payment'] = $this->language->get('error_mobile_payment');
+		}
+
+		if (!isset($this->request->post['config_weixin_payment'])) {
+			$this->error['weixin_payment'] = $this->language->get('error_weixin_payment');
+		}
+			]]></add>
+		</operation>
+		<operation>
+			<search position="before"><![CDATA[
+		$data['order_statuses'] = $this->model_localisation_order_status->getOrderStatuses();
+			]]></search>
+			<add><![CDATA[
+		$this->load->model('extension/extension');
+
+		$extensions = $this->model_extension_extension->getInstalled('payment');
+
+		foreach ($extensions as $key => $value) {
+			if (!file_exists(DIR_APPLICATION . 'controller/payment/' . $value . '.php')) {
+				$this->model_extension_extension->uninstall('payment', $value);
+
+				unset($extensions[$key]);
+			}
+		}
+
+		$data['payments'] = array();
+
+		$files = glob(DIR_APPLICATION . 'controller/payment/*.php');
+
+		if ($files) {
+			foreach ($files as $file) {
+				$extension = basename($file, '.php');
+				if(in_array($extension, $extensions) && $this->config->get($extension . '_status')){
+					$this->load->language('payment/' . $extension);
+	
+					$data['payments'][] = array(
+						'title'       => $this->language->get('heading_title'),
+						'code'     => $extension
+					);
+				}
+			}
+		}
+			]]></add>
+		</operation>
+	</file>
+	<file name="admin/language/zh-CN/setting/setting.php">
+		<operation>
+			<search position="after"><![CDATA[
+// Entry
+			]]></search>
+			<add><![CDATA[
+$_['entry_pc_payment']                 = 'PC端支付方式';
+$_['help_pc_payment']                 = '选择正常的PC端时允许购买者可选用支付方式';
+$_['error_pc_payment']                 = 'PC端支付方式必填';
+$_['entry_mobile_payment']                 = '移动浏览器端支付方式';
+$_['help_mobile_payment']                 = '选择移动浏览器下时允许购买者可选用支付方式';
+$_['error_mobile_payment']                 = '移动浏览器端支付方式必填';
+$_['entry_weixin_payment']                 = '微信端支付方式';
+$_['help_weixin_payment']                 = '选择微信下时允许购买者可选用支付方式';
+$_['error_weixin_payment']                 = '微信端支付方式必填';
+			]]></add>
+		</operation>
+	</file>
+
+	<file name="catalog/controller/checkout/payment_method.php,catalog/controller/mobile/payment_method.php">
+		<operation>
+			<search position="before"><![CDATA[
+					$this->load->model('payment/' . $result['code']);
+			]]></search>
+			<add><![CDATA[
+					if(is_weixin() && !in_array($result['code'], $this->config->get('config_weixin_payment'))){
+						continue;
+					} 
+					if(!is_desktop() && !is_weixin() && !in_array($result['code'], $this->config->get('config_mobile_payment'))){ //不是desktop即认为是手机、平板等移动设备。
+						continue;
+					} 
+					if(is_desktop() && !in_array($result['code'], $this->config->get('config_pc_payment'))) {
+						continue;
+					}
+			]]></add>
+		</operation>
+	</file>
+
+</modification>

@@ -1,0 +1,717 @@
+<modification>
+	<name>guangda_tl_export_order</name>
+	<code>guangda_tl_export_order</code>
+	<version>For OpenCart 1.5.6.4</version>
+	<vqmver>1.0</vqmver>
+	<author>guangda tl email: suport@opencart.cn</author> 
+	
+	<!-- 订单导出 -->
+	<file name="admin/view/template/sale/order_list.tpl">
+		<operation>
+			<search position="after"><![CDATA[
+              <button type="button" id="button-filter" class="btn btn-primary pull-right"><i class="fa fa-search"></i> <?php echo $button_filter; ?></button>
+			]]></search>
+			<add><![CDATA[
+              <button style="margin-right:5px;" type="button" id="button-export" class="btn btn-primary pull-right" onclick="csvexport();"><i class="fa fa-export"></i> <?php echo $button_export; ?></button>
+			]]></add>
+		</operation>
+		<operation>
+			<search position="before"><![CDATA[
+<?php echo $footer; ?>
+			]]></search>
+			<add><![CDATA[
+<script type="text/javascript"><!--
+function csvexport() {
+	url = 'index.php?route=sale/order&token=<?php echo $token; ?>&export=export';
+	var filter_order_id = $('input[name=\'filter_order_id\']').val();
+	
+	if (filter_order_id) {
+		url += '&filter_order_id=' + encodeURIComponent(filter_order_id);
+	}
+	
+	var filter_customer = $('input[name=\'filter_customer\']').val();
+	
+	if (filter_customer) {
+		url += '&filter_customer=' + encodeURIComponent(filter_customer);
+	}
+	
+	var filter_order_status = $('select[name=\'filter_order_status\']').val();
+	
+	if (filter_order_status != '*') {
+		url += '&filter_order_status=' + encodeURIComponent(filter_order_status);
+	}	
+
+	var filter_total = $('input[name=\'filter_total\']').val();
+
+	if (filter_total) {
+		url += '&filter_total=' + encodeURIComponent(filter_total);
+	}	
+	
+	var filter_date_added = $('input[name=\'filter_date_added\']').val();
+	
+	if (filter_date_added) {
+		url += '&filter_date_added=' + encodeURIComponent(filter_date_added);
+	}
+	
+	var filter_date_modified = $('input[name=\'filter_date_modified\']').val();
+	
+	if (filter_date_modified) {
+		url += '&filter_date_modified=' + encodeURIComponent(filter_date_modified);
+	}
+	location = url;
+}
+//--></script>  
+			]]></add>
+		</operation>
+	</file>
+	<file name="admin/controller/sale/order.php">
+		<operation>
+			<search position="after"><![CDATA[
+		$data['button_filter'] = $this->language->get('button_filter');
+			]]></search>
+			<add><![CDATA[
+		$data['button_export'] = $this->language->get('button_export');
+			]]></add>
+		</operation>
+		<operation>
+			<search position="after"><![CDATA[
+		$results = $this->model_sale_order->getOrders($filter_data);
+			]]></search>
+			<add><![CDATA[
+		$expOrders = array();
+		$expOrders[] = array(
+			iconv( "UTF-8", "gbk//IGNORE" , "订单id"), 
+			iconv( "UTF-8", "gbk//IGNORE" , "客户名称"), 
+			iconv( "UTF-8", "gbk//IGNORE" , '状态'), 
+			iconv( "UTF-8", "gbk//IGNORE" , '总计'), 
+			iconv( "UTF-8", "gbk//IGNORE" , '生成日期'), 
+			iconv( "UTF-8", "gbk//IGNORE" , '修改日期'), 
+		);
+		foreach($results as $result) {
+			$expOrders[] = array(
+				'order_id'      => iconv("UTF-8", "gbk//IGNORE" , $result['order_id']),
+				'customer'      => iconv("UTF-8", "gbk//IGNORE" , $result['customer']),
+				'status'        => iconv("UTF-8", "gbk//IGNORE" , $result['status']),
+				'total'         => iconv("UTF-8", "gbk//IGNORE" , $this->currency->format($result['total'], $result['currency_code'], $result['currency_value'])),
+				'date_added'    => iconv("UTF-8", "gbk//IGNORE" , date($this->language->get('date_format_short'), strtotime($result['date_added']))),
+				'date_modified' => iconv("UTF-8", "gbk//IGNORE" , date($this->language->get('date_format_short'), strtotime($result['date_modified']))),
+				'shipping_code' => iconv("UTF-8", "gbk//IGNORE" , $result['shipping_code'])
+			);
+		}
+		
+		if (isset($this->request->get['export']) && ($this->request->get['export']==="export")) {
+			$file = fopen(DIR_CACHE."order.csv","w");
+			foreach($expOrders as $line){
+				fputcsv($file,$line);
+			}
+			fclose($file);
+			$fileName = "order.csv";
+			header('Content-Type: application/octet-stream');
+			header('Content-Disposition: attachment; filename=' . $fileName);
+			header('Content-Transfer-Encoding: binary');
+			header('Content-Length: ' . filesize(DIR_CACHE.$fileName));
+			readfile(DIR_CACHE.$fileName);
+			exit();
+		}
+			]]></add>
+		</operation>
+	</file>	
+
+
+	<!-- 商品销售统计报表导出 -->
+	<file name="admin/view/template/report/sale_order.tpl">
+		<operation>
+			<search position="after"><![CDATA[
+              <button type="button" id="button-filter" class="btn btn-primary pull-right"><i class="fa fa-search"></i> <?php echo $button_filter; ?></button>
+			]]></search>
+			<add><![CDATA[
+              <button style="margin-right:5px;" type="button" id="button-export" class="btn btn-primary pull-right" onclick="csvexport();"><i class="fa fa-export"></i> <?php echo $button_export; ?></button>
+			]]></add>
+		</operation>
+		<operation>
+			<search position="before"><![CDATA[
+<?php echo $footer; ?>
+			]]></search>
+			<add><![CDATA[
+<script type="text/javascript"><!--
+function csvexport() {
+	url = 'index.php?route=report/sale_order&token=<?php echo $token; ?>&export=export';
+	
+	var filter_date_start = $('input[name=\'filter_date_start\']').val();
+	
+	if (filter_date_start) {
+		url += '&filter_date_start=' + encodeURIComponent(filter_date_start);
+	}
+
+	var filter_date_end = $('input[name=\'filter_date_end\']').val();
+	
+	if (filter_date_end) {
+		url += '&filter_date_end=' + encodeURIComponent(filter_date_end);
+	}
+		
+	var filter_group = $('select[name=\'filter_group\']').val();
+	
+	if (filter_group) {
+		url += '&filter_group=' + encodeURIComponent(filter_group);
+	}
+	
+	var filter_order_status_id = $('select[name=\'filter_order_status_id\']').val();
+	
+	if (filter_order_status_id != 0) {
+		url += '&filter_order_status_id=' + encodeURIComponent(filter_order_status_id);
+	}	
+
+	location = url;
+}
+//--></script>  
+			]]></add>
+		</operation>
+	</file>
+	<file name="admin/controller/report/sale_order.php">
+		<operation>
+			<search position="after"><![CDATA[
+		$data['button_filter'] = $this->language->get('button_filter');
+			]]></search>
+			<add><![CDATA[
+		$data['button_export'] = $this->language->get('button_export');
+			]]></add>
+		</operation>
+		<operation>
+			<search position="after"><![CDATA[
+		$results = $this->model_report_sale->getOrders($filter_data);
+			]]></search>
+			<add><![CDATA[
+		$expOrders = array();
+		$expOrders[] = array(
+			iconv( "UTF-8", "gbk//IGNORE" , "开始日期"), 
+			iconv( "UTF-8", "gbk//IGNORE" , "结束日期"), 
+			iconv( "UTF-8", "gbk//IGNORE" , '订单数量'), 
+			iconv( "UTF-8", "gbk//IGNORE" , '商品数量'), 
+			iconv( "UTF-8", "gbk//IGNORE" , '税额'), 
+			iconv( "UTF-8", "gbk//IGNORE" , '金额总计'), 
+		);
+		foreach($results as $result) {
+			$expOrders[] = array(
+				'date_start' => iconv("UTF-8", "gbk//IGNORE" , date($this->language->get('date_format_short'), strtotime($result['date_start']))),
+				'date_end'   => iconv("UTF-8", "gbk//IGNORE" , date($this->language->get('date_format_short'), strtotime($result['date_end']))),
+				'orders'     => iconv("UTF-8", "gbk//IGNORE" , $result['orders']),
+				'products'   => iconv("UTF-8", "gbk//IGNORE" , $result['products']),
+				'tax'        => iconv("UTF-8", "gbk//IGNORE" , $this->currency->format($result['tax'], $this->config->get('config_currency'))),
+				'total'      => iconv("UTF-8", "gbk//IGNORE" , $this->currency->format($result['total'], $this->config->get('config_currency')))
+			);
+		}
+		
+		if (isset($this->request->get['export']) && ($this->request->get['export']==="export")) {
+			$file = fopen(DIR_CACHE."sale_order.csv","w");
+			foreach($expOrders as $line){
+				fputcsv($file,$line);
+			}
+			fclose($file);
+			$fileName = "sale_order.csv";
+			header('Content-Type: application/octet-stream');
+			header('Content-Disposition: attachment; filename=' . $fileName);
+			header('Content-Transfer-Encoding: binary');
+			header('Content-Length: ' . filesize(DIR_CACHE.$fileName));
+			readfile(DIR_CACHE.$fileName);
+			exit();
+		}
+			]]></add>
+		</operation>
+	</file>	
+
+
+	<!-- 商品销售统税费计报表导出 -->
+	<file name="admin/view/template/report/sale_tax.tpl">
+		<operation>
+			<search position="after"><![CDATA[
+              <button type="button" id="button-filter" class="btn btn-primary pull-right"><i class="fa fa-search"></i> <?php echo $button_filter; ?></button>
+			]]></search>
+			<add><![CDATA[
+              <button style="margin-right:5px;" type="button" id="button-export" class="btn btn-primary pull-right" onclick="csvexport();"><i class="fa fa-export"></i> <?php echo $button_export; ?></button>
+			]]></add>
+		</operation>
+		<operation>
+			<search position="before"><![CDATA[
+<?php echo $footer; ?>
+			]]></search>
+			<add><![CDATA[
+<script type="text/javascript"><!--
+function csvexport() {
+	url = 'index.php?route=report/sale_tax&token=<?php echo $token; ?>&export=export';
+	
+	var filter_date_start = $('input[name=\'filter_date_start\']').val();
+	
+	if (filter_date_start) {
+		url += '&filter_date_start=' + encodeURIComponent(filter_date_start);
+	}
+
+	var filter_date_end = $('input[name=\'filter_date_end\']').val();
+	
+	if (filter_date_end) {
+		url += '&filter_date_end=' + encodeURIComponent(filter_date_end);
+	}
+		
+	var filter_group = $('select[name=\'filter_group\']').val();
+	
+	if (filter_group) {
+		url += '&filter_group=' + encodeURIComponent(filter_group);
+	}
+	
+	var filter_order_status_id = $('select[name=\'filter_order_status_id\']').val();
+	
+	if (filter_order_status_id != 0) {
+		url += '&filter_order_status_id=' + encodeURIComponent(filter_order_status_id);
+	}	
+
+	location = url;
+}
+//--></script>  
+			]]></add>
+		</operation>
+	</file>
+	<file name="admin/controller/report/sale_tax.php">
+		<operation>
+			<search position="after"><![CDATA[
+		$data['button_filter'] = $this->language->get('button_filter');
+			]]></search>
+			<add><![CDATA[
+		$data['button_export'] = $this->language->get('button_export');
+			]]></add>
+		</operation>
+		<operation>
+			<search position="after"><![CDATA[
+		$results = $this->model_report_sale->getTaxes($filter_data);
+			]]></search>
+			<add><![CDATA[
+		$expOrders = array();
+		$expOrders[] = array(
+			iconv( "UTF-8", "gbk//IGNORE" , "开始日期"), 
+			iconv( "UTF-8", "gbk//IGNORE" , "结束日期"), 
+			iconv( "UTF-8", "gbk//IGNORE" , '税种'), 
+			iconv( "UTF-8", "gbk//IGNORE" , '订单数量'), 
+			iconv( "UTF-8", "gbk//IGNORE" , '金额')
+		);
+		foreach($results as $result) {
+			$expOrders[] = array(
+				'date_start' => iconv("UTF-8", "gbk//IGNORE" , date($this->language->get('date_format_short'), strtotime($result['date_start']))),
+				'date_end'   => iconv("UTF-8", "gbk//IGNORE" , date($this->language->get('date_format_short'), strtotime($result['date_end']))),
+				'title'      => iconv("UTF-8", "gbk//IGNORE" , $result['title']),
+				'orders'     => iconv("UTF-8", "gbk//IGNORE" , $result['orders']),
+				'total'      => iconv("UTF-8", "gbk//IGNORE" , $this->currency->format($result['total'], $this->config->get('config_currency')))
+			);
+		}
+		
+		if (isset($this->request->get['export']) && ($this->request->get['export']==="export")) {
+			$file = fopen(DIR_CACHE."sale_order.csv","w");
+			foreach($expOrders as $line){
+				fputcsv($file,$line);
+			}
+			fclose($file);
+			$fileName = "sale_order.csv";
+			header('Content-Type: application/octet-stream');
+			header('Content-Disposition: attachment; filename=' . $fileName);
+			header('Content-Transfer-Encoding: binary');
+			header('Content-Length: ' . filesize(DIR_CACHE.$fileName));
+			readfile(DIR_CACHE.$fileName);
+			exit();
+		}
+			]]></add>
+		</operation>
+	</file>	
+
+
+	<!-- 商品配送统计（运费统计）报表导出 -->
+	<file name="admin/view/template/report/sale_shipping.tpl">
+		<operation>
+			<search position="after"><![CDATA[
+              <button type="button" id="button-filter" class="btn btn-primary pull-right"><i class="fa fa-search"></i> <?php echo $button_filter; ?></button>
+			]]></search>
+			<add><![CDATA[
+              <button style="margin-right:5px;" type="button" id="button-export" class="btn btn-primary pull-right" onclick="csvexport();"><i class="fa fa-export"></i> <?php echo $button_export; ?></button>
+			]]></add>
+		</operation>
+		<operation>
+			<search position="before"><![CDATA[
+<?php echo $footer; ?>
+			]]></search>
+			<add><![CDATA[
+<script type="text/javascript"><!--
+function csvexport() {
+	url = 'index.php?route=report/sale_shipping&token=<?php echo $token; ?>&export=export';
+	
+	var filter_date_start = $('input[name=\'filter_date_start\']').val();
+	
+	if (filter_date_start) {
+		url += '&filter_date_start=' + encodeURIComponent(filter_date_start);
+	}
+
+	var filter_date_end = $('input[name=\'filter_date_end\']').val();
+	
+	if (filter_date_end) {
+		url += '&filter_date_end=' + encodeURIComponent(filter_date_end);
+	}
+		
+	var filter_group = $('select[name=\'filter_group\']').val();
+	
+	if (filter_group) {
+		url += '&filter_group=' + encodeURIComponent(filter_group);
+	}
+	
+	var filter_order_status_id = $('select[name=\'filter_order_status_id\']').val();
+	
+	if (filter_order_status_id != 0) {
+		url += '&filter_order_status_id=' + encodeURIComponent(filter_order_status_id);
+	}	
+
+	location = url;
+}
+//--></script>  
+			]]></add>
+		</operation>
+	</file>
+	<file name="admin/controller/report/sale_shipping.php">
+		<operation>
+			<search position="after"><![CDATA[
+		$data['button_filter'] = $this->language->get('button_filter');
+			]]></search>
+			<add><![CDATA[
+		$data['button_export'] = $this->language->get('button_export');
+			]]></add>
+		</operation>
+		<operation>
+			<search position="after"><![CDATA[
+		$results = $this->model_report_sale->getShipping($filter_data);
+			]]></search>
+			<add><![CDATA[
+		$expOrders = array();
+		$expOrders[] = array(
+			iconv( "UTF-8", "gbk//IGNORE" , "开始日期"), 
+			iconv( "UTF-8", "gbk//IGNORE" , "结束日期"), 
+			iconv( "UTF-8", "gbk//IGNORE" , '配送方式'), 
+			iconv( "UTF-8", "gbk//IGNORE" , '订单数量'), 
+			iconv( "UTF-8", "gbk//IGNORE" , '金额')
+		);
+		foreach($results as $result) {
+			$expOrders[] = array(
+				'date_start' => iconv("UTF-8", "gbk//IGNORE" , date($this->language->get('date_format_short'), strtotime($result['date_start']))),
+				'date_end'   => iconv("UTF-8", "gbk//IGNORE" , date($this->language->get('date_format_short'), strtotime($result['date_end']))),
+				'title'      => iconv("UTF-8", "gbk//IGNORE" , $result['title']),
+				'orders'     => iconv("UTF-8", "gbk//IGNORE" , $result['orders']),
+				'total'      => iconv("UTF-8", "gbk//IGNORE" , $this->currency->format($result['total'], $this->config->get('config_currency')))
+			);
+		}
+		
+		if (isset($this->request->get['export']) && ($this->request->get['export']==="export")) {
+			$file = fopen(DIR_CACHE."sale_order.csv","w");
+			foreach($expOrders as $line){
+				fputcsv($file,$line);
+			}
+			fclose($file);
+			$fileName = "sale_order.csv";
+			header('Content-Type: application/octet-stream');
+			header('Content-Disposition: attachment; filename=' . $fileName);
+			header('Content-Transfer-Encoding: binary');
+			header('Content-Length: ' . filesize(DIR_CACHE.$fileName));
+			readfile(DIR_CACHE.$fileName);
+			exit();
+		}
+			]]></add>
+		</operation>
+	</file>	
+
+
+	<!-- 退换商品统计报表导出 -->
+	<file name="admin/view/template/report/sale_return.tpl">
+		<operation>
+			<search position="after"><![CDATA[
+              <button type="button" id="button-filter" class="btn btn-primary pull-right"><i class="fa fa-search"></i> <?php echo $button_filter; ?></button>
+			]]></search>
+			<add><![CDATA[
+              <button style="margin-right:5px;" type="button" id="button-export" class="btn btn-primary pull-right" onclick="csvexport();"><i class="fa fa-export"></i> <?php echo $button_export; ?></button>
+			]]></add>
+		</operation>
+		<operation>
+			<search position="before"><![CDATA[
+<?php echo $footer; ?>
+			]]></search>
+			<add><![CDATA[
+<script type="text/javascript"><!--
+function csvexport() {
+	url = 'index.php?route=report/sale_return&token=<?php echo $token; ?>&export=export';
+	
+	var filter_date_start = $('input[name=\'filter_date_start\']').val();
+	
+	if (filter_date_start) {
+		url += '&filter_date_start=' + encodeURIComponent(filter_date_start);
+	}
+
+	var filter_date_end = $('input[name=\'filter_date_end\']').val();
+	
+	if (filter_date_end) {
+		url += '&filter_date_end=' + encodeURIComponent(filter_date_end);
+	}
+		
+	var filter_group = $('select[name=\'filter_group\']').val();
+	
+	if (filter_group) {
+		url += '&filter_group=' + encodeURIComponent(filter_group);
+	}
+	
+	var filter_order_status_id = $('select[name=\'filter_order_status_id\']').val();
+	
+	if (filter_order_status_id != 0) {
+		url += '&filter_order_status_id=' + encodeURIComponent(filter_order_status_id);
+	}	
+
+	location = url;
+}
+//--></script>  
+			]]></add>
+		</operation>
+	</file>
+	<file name="admin/controller/report/sale_return.php">
+		<operation>
+			<search position="after"><![CDATA[
+		$data['button_filter'] = $this->language->get('button_filter');
+			]]></search>
+			<add><![CDATA[
+		$data['button_export'] = $this->language->get('button_export');
+			]]></add>
+		</operation>
+		<operation>
+			<search position="after"><![CDATA[
+		$results = $this->model_report_return->getReturns($filter_data);
+			]]></search>
+			<add><![CDATA[
+		$expOrders = array();
+		$expOrders[] = array(
+			iconv( "UTF-8", "gbk//IGNORE" , "开始日期"), 
+			iconv( "UTF-8", "gbk//IGNORE" , "结束日期"), 
+			iconv( "UTF-8", "gbk//IGNORE" , '退换数量')
+		);
+		foreach($results as $result) {
+			$expOrders[] = array(
+				'date_start' => iconv("UTF-8", "gbk//IGNORE" , date($this->language->get('date_format_short'), strtotime($result['date_start']))),
+				'date_end'   => iconv("UTF-8", "gbk//IGNORE" , date($this->language->get('date_format_short'), strtotime($result['date_end']))),
+				'returns'    => iconv("UTF-8", "gbk//IGNORE" , $result['returns'])
+			);
+		}
+		
+		if (isset($this->request->get['export']) && ($this->request->get['export']==="export")) {
+			$file = fopen(DIR_CACHE."sale_order.csv","w");
+			foreach($expOrders as $line){
+				fputcsv($file,$line);
+			}
+			fclose($file);
+			$fileName = "sale_order.csv";
+			header('Content-Type: application/octet-stream');
+			header('Content-Disposition: attachment; filename=' . $fileName);
+			header('Content-Transfer-Encoding: binary');
+			header('Content-Length: ' . filesize(DIR_CACHE.$fileName));
+			readfile(DIR_CACHE.$fileName);
+			exit();
+		}
+			]]></add>
+		</operation>
+	</file>	
+	
+	
+	<!-- 折扣商品统计报表导出 -->
+	<file name="admin/view/template/report/sale_coupon.tpl">
+		<operation>
+			<search position="after"><![CDATA[
+              <button type="button" id="button-filter" class="btn btn-primary pull-right"><i class="fa fa-search"></i> <?php echo $button_filter; ?></button>
+			]]></search>
+			<add><![CDATA[
+              <button style="margin-right:5px;" type="button" id="button-export" class="btn btn-primary pull-right" onclick="csvexport();"><i class="fa fa-export"></i> <?php echo $button_export; ?></button>
+			]]></add>
+		</operation>
+		<operation>
+			<search position="before"><![CDATA[
+<?php echo $footer; ?>
+			]]></search>
+			<add><![CDATA[
+<script type="text/javascript"><!--
+function csvexport() {
+	url = 'index.php?route=report/sale_coupon&token=<?php echo $token; ?>&export=export';
+	
+	var filter_date_start = $('input[name=\'filter_date_start\']').val();
+	
+	if (filter_date_start) {
+		url += '&filter_date_start=' + encodeURIComponent(filter_date_start);
+	}
+
+	var filter_date_end = $('input[name=\'filter_date_end\']').val();
+	
+	if (filter_date_end) {
+		url += '&filter_date_end=' + encodeURIComponent(filter_date_end);
+	}
+
+	location = url;
+}
+//--></script>  
+			]]></add>
+		</operation>
+	</file>
+	<file name="admin/controller/report/sale_coupon.php">
+		<operation>
+			<search position="after"><![CDATA[
+		$data['button_filter'] = $this->language->get('button_filter');
+			]]></search>
+			<add><![CDATA[
+		$data['button_export'] = $this->language->get('button_export');
+			]]></add>
+		</operation>
+		<operation>
+			<search position="after"><![CDATA[
+		$results = $this->model_report_coupon->getCoupons($filter_data);
+			]]></search>
+			<add><![CDATA[
+		$expOrders = array();
+		$expOrders[] = array(
+			iconv( "UTF-8", "gbk//IGNORE" , "折扣名称"), 
+			iconv( "UTF-8", "gbk//IGNORE" , "折扣代码"), 
+			iconv( "UTF-8", "gbk//IGNORE" , "订单"), 
+			iconv( "UTF-8", "gbk//IGNORE" , '合计')
+		);
+		foreach($results as $result) {
+			$expOrders[] = array(
+				'name'   => iconv("UTF-8", "gbk//IGNORE" , $result['name']),
+				'code'   => iconv("UTF-8", "gbk//IGNORE" , $result['code']),
+				'orders' => iconv("UTF-8", "gbk//IGNORE" , $result['orders']),
+				'total'  => iconv("UTF-8", "gbk//IGNORE" , $this->currency->format($result['total'], $this->config->get('config_currency'))),
+			);
+		}
+		
+		if (isset($this->request->get['export']) && ($this->request->get['export']==="export")) {
+			$file = fopen(DIR_CACHE."sale_order.csv","w");
+			foreach($expOrders as $line){
+				fputcsv($file,$line);
+			}
+			fclose($file);
+			$fileName = "sale_order.csv";
+			header('Content-Type: application/octet-stream');
+			header('Content-Disposition: attachment; filename=' . $fileName);
+			header('Content-Transfer-Encoding: binary');
+			header('Content-Length: ' . filesize(DIR_CACHE.$fileName));
+			readfile(DIR_CACHE.$fileName);
+			exit();
+		}
+			]]></add>
+		</operation>
+	</file>	
+
+
+	<!-- 商品销售统计报表导出 -->
+	<file name="admin/view/template/report/product_purchased.tpl">
+		<operation>
+			<search position="after"><![CDATA[
+              <button type="button" id="button-filter" class="btn btn-primary pull-right"><i class="fa fa-search"></i> <?php echo $button_filter; ?></button>
+			]]></search>
+			<add><![CDATA[
+              <button style="margin-right:5px;" type="button" id="button-export" class="btn btn-primary pull-right" onclick="csvexport();"><i class="fa fa-export"></i> <?php echo $button_export; ?></button>
+			]]></add>
+		</operation>
+		<operation>
+			<search position="before"><![CDATA[
+<?php echo $footer; ?>
+			]]></search>
+			<add><![CDATA[
+<script type="text/javascript"><!--
+function csvexport() {
+	url = 'index.php?route=report/product_purchased&token=<?php echo $token; ?>&export=export';
+	
+	var filter_date_start = $('input[name=\'filter_date_start\']').val();
+	
+	if (filter_date_start) {
+		url += '&filter_date_start=' + encodeURIComponent(filter_date_start);
+	}
+
+	var filter_date_end = $('input[name=\'filter_date_end\']').val();
+	
+	if (filter_date_end) {
+		url += '&filter_date_end=' + encodeURIComponent(filter_date_end);
+	}
+	
+	var filter_order_status_id = $('select[name=\'filter_order_status_id\']').val();
+	
+	if (filter_order_status_id != 0) {
+		url += '&filter_order_status_id=' + encodeURIComponent(filter_order_status_id);
+	}	
+
+	location = url;
+}
+//--></script>  
+			]]></add>
+		</operation>
+	</file>
+	<file name="admin/controller/report/product_purchased.php">
+		<operation>
+			<search position="after"><![CDATA[
+		$data['button_filter'] = $this->language->get('button_filter');
+			]]></search>
+			<add><![CDATA[
+		$data['button_export'] = $this->language->get('button_export');
+			]]></add>
+		</operation>
+		<operation>
+			<search position="after"><![CDATA[
+		$results = $this->model_report_product->getPurchased($filter_data);
+			]]></search>
+			<add><![CDATA[
+		$expOrders = array();
+		$expOrders[] = array(
+			iconv( "UTF-8", "gbk//IGNORE" , "商品名称"), 
+			iconv( "UTF-8", "gbk//IGNORE" , "商品型号"), 
+			iconv( "UTF-8", "gbk//IGNORE" , "购买数量"), 
+			iconv( "UTF-8", "gbk//IGNORE" , '金额总计')
+		);
+		foreach($results as $result) {
+			$expOrders[] = array(
+				'name'       => iconv("UTF-8", "gbk//IGNORE" , $result['name']),
+				'model'      => iconv("UTF-8", "gbk//IGNORE" , $result['model']),
+				'quantity'   => iconv("UTF-8", "gbk//IGNORE" , $result['quantity']),
+				'total'      => iconv("UTF-8", "gbk//IGNORE" , $this->currency->format($result['total'], $this->config->get('config_currency')))
+			);
+		}
+		
+		if (isset($this->request->get['export']) && ($this->request->get['export']==="export")) {
+			$file = fopen(DIR_CACHE."sale_order.csv","w");
+			foreach($expOrders as $line){
+				fputcsv($file,$line);
+			}
+			fclose($file);
+			$fileName = "sale_order.csv";
+			header('Content-Type: application/octet-stream');
+			header('Content-Disposition: attachment; filename=' . $fileName);
+			header('Content-Transfer-Encoding: binary');
+			header('Content-Length: ' . filesize(DIR_CACHE.$fileName));
+			readfile(DIR_CACHE.$fileName);
+			exit();
+		}
+			]]></add>
+		</operation>
+	</file>	
+	
+	//统一语言包
+	<file name="admin/language/zh-CN/default.php">
+		<operation error="skip">
+			<search position="after"><![CDATA[
+// Button
+			]]></search>
+			<add><![CDATA[
+$_['button_export']                    = '导出csv';
+			]]></add>
+		</operation>
+	</file>	
+	<file name="admin/language/zh-CN/zh-CN.php">
+		<operation error="skip">
+			<search position="after"><![CDATA[
+// Button
+			]]></search>
+			<add><![CDATA[
+$_['button_export']                    = '导出csv';
+			]]></add>
+		</operation>
+	</file>	
+</modification>

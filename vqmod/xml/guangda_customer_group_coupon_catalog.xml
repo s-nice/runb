@@ -1,0 +1,180 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<modification>
+	<id>customer_coupon</id>
+	<version>For OpenCart 2.1.0.1</version>
+	<vqmver>2.5.1</vqmver>
+	<author>GuangDa email: suport@opencart.cn</author> 
+	<file name="catalog/view/theme/*/template/module/account.tpl">
+		<operation>
+			<search position="iafter"><![CDATA[
+		<a href="<?php echo $transaction; ?>" class="list-group-item"><?php echo $text_transaction; ?></a>
+			]]></search>
+			<add><![CDATA[
+		<a href="<?php echo $coupons; ?>" class="list-group-item"><?php echo $text_coupons; ?></a>
+			]]></add>
+		</operation>
+	</file>
+	<file name="catalog/controller/module/account.php">
+		<operation>
+			<search position="after"><![CDATA[
+		$data['transaction'] = $this->url->link('account/transaction', '', 'SSL');
+			]]></search>
+			<add><![CDATA[
+		$this->load->language('account/coupons');
+		$data['text_coupons'] = $this->language->get('text_coupons');
+		$data['coupons'] = $this->url->link('account/coupons', '', 'SSL');
+			]]></add>
+		</operation>
+	</file>
+
+	<file name="catalog/controller/total/coupon.php">
+		<operation error="abort">
+			<search position="before"><![CDATA[file_exists(DIR_TEMPLATE . $this->config->get('config_template')]]></search>
+			<add><![CDATA[
+			$data['entry_select_coupon'] = $this->language->get('entry_select_coupon');
+			$this->load->model("customercoupon/coupon");
+			$this->load->model('total/coupon');
+			$customer_coupons = $this->model_customercoupon_coupon->getCouponsByCustomer($this->customer, true);
+			if($customer_coupons){
+				foreach($customer_coupons as $key => $value){
+					$coupon_info = $this->model_total_coupon->getCoupon($value['code']);
+					if(!$coupon_info){
+						unset($customer_coupons[$key]);
+					}
+				}
+				}
+			$data['customer_coupons'] = $customer_coupons ? $customer_coupons : array();
+			]]></add>
+		</operation>
+	</file>
+	<file name="catalog/language/zh-CN/total/coupon.php">
+		<operation error="abort">
+			<search position="replace"><![CDATA[
+$_['entry_coupon']  = '在这里输入你的优惠券';
+			]]></search>
+			<add><![CDATA[
+$_['entry_coupon']  = '您也可以直接在这里输入你的优惠码';
+$_['entry_select_coupon']  = '以下是您在该订单中可以使用的所有优惠券，请选择要使用的优惠券';
+			]]></add>
+		</operation>
+	</file>
+	<file name="catalog/view/theme/*/template/total/coupon.tpl">
+		<operation error="abort">
+			<search position="after"><![CDATA[
+    <div class="panel-body">
+			]]></search>
+			<add><![CDATA[
+    	<?php if($customer_coupons){ ?>
+    	<label class="col-sm-12"><?php echo $entry_select_coupon; ?></label>
+    	<?php foreach($customer_coupons as $customer_coupon){ ?>
+    	<div class="radio col-sm-12"><label><input name="customercoupon" value="<?php echo $customer_coupon['code']; ?>" type="radio"><?php echo $customer_coupon['name'];?></label></div>
+    	<?php } ?>
+    	<?php } ?>
+			]]></add>
+		</operation>
+		<operation error="abort">
+			<search position="after"><![CDATA[
+      <script type="text/javascript"><!--
+			]]></search>
+			<add><![CDATA[
+$('input[name=\'customercoupon\']').on('click', function() {
+	$.ajax({
+		url: 'index.php?route=total/coupon/coupon',
+		type: 'post',
+		data: 'coupon=' + encodeURIComponent($(this).val()),
+		dataType: 'json',
+		beforeSend: function() {
+			$('#button-coupon').button('loading');
+		},
+		complete: function() {
+			$('#button-coupon').button('reset');
+		},
+		success: function(json) {
+			$('.alert').remove();
+
+			if (json['error']) {
+				$('.breadcrumb').after('<div class="alert alert-danger"><i class="fa fa-exclamation-circle"></i> ' + json['error'] + '<button type="button" class="close" data-dismiss="alert">&times;</button></div>');
+
+				$('html, body').animate({ scrollTop: 0 }, 'slow');
+			}
+
+			if (json['redirect']) {
+				location = json['redirect'];
+			}
+		}
+	});
+});
+			]]></add>
+		</operation>
+	</file>
+	<file name="catalog/model/total/coupon.php">
+		<operation  error="abort">
+			<search position="before"><![CDATA[
+			// Products
+			]]></search>
+			<add><![CDATA[
+			if ($this->customer->getId()) {
+				// Customer 
+				$coupon_customer_data = array();
+	
+				$coupon_customer_query = $this->db->query("SELECT * FROM `" . DB_PREFIX . "coupon_customer` WHERE coupon_id = '" . (int)$coupon_query->row['coupon_id'] . "'");
+	
+				foreach ($coupon_customer_query->rows as $customer) {
+					$coupon_customer_data[] = $customer['customer_id'];
+				}
+	
+				// Customer Group
+				$coupon_customer_group_data = array();
+	
+				$coupon_customer_group_query = $this->db->query("SELECT * FROM `" . DB_PREFIX . "coupon_customer_group` WHERE coupon_id = '" . (int)$coupon_query->row['coupon_id'] . "'");
+	
+				foreach ($coupon_customer_group_query->rows as $customer_group) {
+					$coupon_customer_group_data[] = $customer_group['customer_group_id'];
+				}
+
+				if ($coupon_customer_data || $coupon_customer_group_data) {
+					$customer_group_id = $this->customer->getGroupId();
+					$customer_id = $this->customer->getId();
+
+					if( !in_array($customer_id, $coupon_customer_data) && !in_array($customer_group_id, $coupon_customer_group_data)){
+						$status = false;
+					}
+				}
+			}
+			]]></add>
+		</operation>	
+	</file>
+	<file name="catalog/view/theme/default/template/checkout/cart.tpl">
+		<operation>
+			<search position="ireplace"><![CDATA[<?php echo $coupon; ?>]]></search>
+			<add><![CDATA[<div id="cart-coupon"><?php echo $coupon; ?></div>]]></add>
+		</operation>
+	</file>
+	<file name="catalog/controller/checkout/cart.php">
+		<operation>
+			<search position="before"><![CDATA[
+	public function index() {
+			]]></search>
+			<add><![CDATA[
+	public function getCoupon() {
+			$this->response->setOutput($this->load->controller('total/coupon'));
+	}
+			]]></add>
+		</operation>
+	</file>
+	<file name="catalog/view/theme/default/template/checkout/cart.tpl">
+		<operation>
+			<search position="before" offset="1"><![CDATA[
+					url: "index.php?route=checkout/cart/getShipping",
+			]]></search>
+			<add><![CDATA[
+				$.ajax({
+					url: "index.php?route=checkout/cart/getCoupon",
+					success: function(html){
+						$("#cart-coupon").html(html);
+					}
+				});
+			]]></add>
+		</operation>
+	</file>
+</modification>

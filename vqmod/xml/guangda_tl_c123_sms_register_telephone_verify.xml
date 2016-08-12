@@ -1,0 +1,205 @@
+<modification>
+	<id>guangda_tl_c123_sms_register_telephone_verify</id>
+	<version>0.5</version>
+	<vqmver>2.5.1</vqmver>
+	<author>opencart.cn</author>
+
+	<!-- 注册页面添加手机号码验证功能 -->
+	<file name="catalog/view/theme/*/template/account/register.tpl">
+		<operation>
+			<search position="replace"><![CDATA[<input type="tel" name="telephone" value="<?php echo $telephone; ?>" placeholder="<?php echo $entry_telephone; ?>" id="input-tel-telephone" class="form-control" />]]></search>
+			<add><![CDATA[
+				<?php if($config_c123_status) { ?>
+				<div class="row">
+					<div class="col-sm-9">
+						<input type="tel" name="telephone" value="<?php echo $telephone; ?>" placeholder="<?php echo $entry_telephone; ?>" id="input-tel-telephone" class="form-control" />
+					</div>
+					<div class="col-sm-3">
+						<input id="Button1" type="button" class="button button-code btn btn-default btn-block" value="<?php echo $entry_getsmscode ?>" onClick="get(this)" />
+					</div>
+				</div>
+				<?php } else { ?>
+					<input type="tel" name="telephone" value="<?php echo $telephone; ?>" placeholder="<?php echo $entry_telephone; ?>" id="input-tel-telephone" class="form-control" />
+				<?php } ?>
+			]]></add>
+		</operation>
+
+		<operation>
+			<search position="after" offset="3"><![CDATA[
+            <?php echo $error_telephone; ?>
+			]]></search>
+			<add><![CDATA[
+					<?php if($config_c123_status) { ?>
+          <div class="form-group required">
+            <label class="col-sm-2 control-label" for="input-smscode"><?php echo $entry_smscode; ?></label>
+            <div class="col-sm-10">
+              <input type="text" name="smscode" value="" placeholder="<?php echo $entry_smscode; ?>" id="input-smscode" class="form-control" />
+              <?php if ($error_smscode) { ?>
+              <div class="text-danger"><?php echo $error_smscode; ?></div>
+              <?php } ?>
+            </div>
+          </div>
+        	<?php } ?>
+			]]></add>
+		</operation>
+		<operation>
+			<search position="before"><![CDATA[
+		<?php echo $footer; ?>
+			]]></search>
+			<add><![CDATA[
+<script type="text/javascript"><!--
+var timeconst = 2*60
+var maxtime = timeconst;
+function CountDown()
+{
+	if(maxtime>=0)
+	{
+		msg = "<?php echo $text_countdown1; ?>"+maxtime+"<?php echo $text_countdown2; ?>";
+		$('#Button1').val(msg);
+		--maxtime;
+	}
+	else
+	{
+		clearInterval(timer);
+		maxtime = timeconst;
+		$('#Button1').val("<?php echo $text_reget_modify_code ?>");
+  	$('#Button1').attr("disabled",false);
+	}
+}
+function get(obj) {
+    var partten = /^\d{10,13}$/;
+    if (!partten.test(document.getElementById("input-tel-telephone").value)) {
+        alert('<?php echo $text_tel; ?>');
+        return;
+    }
+  $.ajax({
+      url: 'index.php?route=sms/sms/index',
+      type: "POST",
+      data: "tel=" + $("#input-tel-telephone").val(),
+			dataType: 'json',
+			beforeSend: function() {
+  			//obj.disabled = true;
+			},
+			complete: function() {
+				//倒计时1分钟，即使完成后将obj.disabled设置为false
+				//timer = setInterval("CountDown()",1000);
+			},
+			success: function(data) {
+				if(data['error']) {
+					alert(data['error']);
+				//wenbin.meng alert需要删除
+				} else if (data['status'] == "fail") {
+					alert(data['msg']);
+				} else if (data['status'] == "success") {
+					obj.disabled = true;
+					timer = setInterval("CountDown()",1000);
+				}
+      }
+  })
+}
+//--></script>
+			]]></add>
+		</operation>
+	</file>
+
+	<file name="catalog/controller/account/register.php">
+		<operation>
+			<search position="after"><![CDATA[
+			$this->model_account_customer->addCustomer($this->request->post);
+			]]></search>
+			<add><![CDATA[
+			setcookie('smscode', 0, time(), '/');
+			setcookie('tel', 0, time(), '/');
+			]]></add>
+		</operation>
+		<operation>
+			<search position="after"><![CDATA[
+		$data['entry_telephone'] = $this->language->get('entry_telephone');
+			]]></search>
+			<add><![CDATA[
+    $this->load->language('sms/sms');
+		$data['entry_getsmscode'] = $this->language->get('entry_getsmscode');
+		$data['entry_smscode'] = $this->language->get('entry_smscode');
+		$data['config_c123_status'] = $this->config->get('config_c123_status');
+		$data['text_tel'] = $this->language->get('text_tel');
+		$data['text_reget_modify_code'] = $this->language->get('text_reget_modify_code');
+		$data['text_countdown1'] = $this->language->get('text_countdown1');
+		$data['text_countdown2'] = $this->language->get('text_countdown2');
+			]]></add>
+		</operation>
+		<operation>
+			<search position="before"><![CDATA[
+		if (isset($this->error['telephone'])) {
+			]]></search>
+			<add><![CDATA[
+		if (isset($this->error['smscode'])) {
+			$data['error_smscode'] = $this->error['smscode'];
+		} else {
+			$data['error_smscode'] = '';
+		}
+			]]></add>
+		</operation>
+		<operation>
+			<search position="before"><![CDATA[
+		if (isset($this->request->post['telephone'])) {
+			]]></search>
+			<add><![CDATA[
+		if (isset($this->request->post['smscode'])) {
+    		$data['smscode'] = $this->request->post['smscode'];
+		} else {
+			$data['smscode'] = '';
+		}
+			]]></add>
+		</operation>
+		<operation>
+			<search position="after"><![CDATA[
+		if(isset($this->request->post['telephone'])){
+			]]></search>
+			<add><![CDATA[
+    	$this->load->language('sms/sms');
+			$this->load->model('account/customer');
+    	if($this->config->get('config_c123_status')){
+				if (!$this->request->post['smscode']|| !isset($this->request->cookie['smscode']) || $this->request->post['smscode'] != $this->request->cookie['smscode']) {
+	      		$this->error['smscode'] = $this->language->get('error_smscode');
+	    	} else if ($this->request->post['telephone'] != $this->request->cookie['tel']) {
+	      		$this->error['telephone'] = $this->language->get('error_telephone_eq');
+	    	}
+			}
+			]]></add>
+		</operation>
+	</file>
+
+	<!-- 短信找回密码 -->
+	<file name="catalog/controller/account/forgotten.php">
+		<operation>
+			<search position="before"><![CDATA[
+			$mail = new Mail();
+			]]></search>
+			<add><![CDATA[
+			if(preg_match('/^[^\@]+@.*.[a-z]{2,15}$/i', $this->request->post['email'])) {  //email
+			]]></add>
+		</operation>
+		<operation>
+			<search position="after"><![CDATA[
+			$mail->send();
+			]]></search>
+			<add><![CDATA[
+			} else {  //telephone
+				require_once(DIR_SYSTEM . 'library/sms.php');
+				$sms = new Sms($this->config->get('config_c123_ac'), $this->config->get('config_c123_authkey'), $this);
+				$sms->setParams($message, $this->request->post['email']);
+				$ret = $sms->send();
+			}
+			]]></add>
+		</operation>
+		<operation>
+			<search position="after"><![CDATA[
+		} elseif (!$this->model_account_customer->getTotalCustomersByEmail($this->request->post['email'])) {
+			]]></search>
+			<add><![CDATA[
+		} elseif (!$this->model_account_customer->getTotalCustomersByEmail($this->request->post['email']) && !$this->model_account_customer->getTotalCustomersByTelephone($this->request->post['email'])) {
+			]]></add>
+		</operation>
+	</file>
+
+</modification>

@@ -1,0 +1,69 @@
+<modification>
+	<id>weixin_login_and_payment</id>
+	<version>For OpenCart 2.0.x</version>
+    <vqmver>2.5.1</vqmver>
+   <author>GuangDa-TL Mail:support@opencart.cn</author>
+	<email>support@opencart.cn</email>
+	<website>http://www.opencart.cn</website>
+	
+	
+	<file name="catalog/controller/*/home.php">
+		<operation>
+			<search position="after"><![CDATA[
+	public function index() {
+			]]></search>
+			<add><![CDATA[
+		if ( strpos($_SERVER['HTTP_USER_AGENT'], 'MicroMessenger') !== false && !isset($this->request->get['openid']) && !isset($this->session->data['weixin_openid'])) {
+			if(!isset($this->session->data['weixin_openid'])){
+				$this->weixinhome();
+			}
+		} else if(isset($this->request->get['openid'])) {
+			$this->session->data['weixin_openid'] = $this->request->get['openid'];
+		}
+			]]></add>
+		</operation>
+		<operation>
+			<search position="before"><![CDATA[
+	public function index() {
+			]]></search>
+			<add><![CDATA[
+	public function weixinhome() {
+		include_once("catalog/controller/payment/WxPayPubHelper/WxPayPubHelper.php");
+		//设置参数
+		if($this->config->get('weipay_appid')){
+			WxPayConf_pub::$APPID = $this->config->get('weipay_appid');
+		}
+		if($this->config->get('weipay_mchid')){
+			WxPayConf_pub::$MCHID = $this->config->get('weipay_mchid');
+		}
+		if($this->config->get('weipay_key')){
+			WxPayConf_pub::$KEY = $this->config->get('weipay_key');
+		}
+		if($this->config->get('weipay_appsecret')){
+			WxPayConf_pub::$APPSECRET = $this->config->get('weipay_appsecret');
+		}
+		//使用jsapi接口
+		$jsApi = new JsApi_pub();
+	
+		//=========步骤1：网页授权获取用户openid============
+		//通过code获得openid
+		if (!isset($_GET['code']))
+		{
+			//触发微信返回code码
+			$url = $jsApi->createOauthUrlForCode(WxPayConf_pub::JS_API_CALL_URL);
+			Header("Location: $url"); 
+			exit();
+		}else
+		{
+			//获取code码，以获取openid
+		    $code = $_GET['code'];
+			$jsApi->setCode($code);
+			$openid = $jsApi->getOpenId();
+		}
+		$this->session->data['weixin_openid'] = $openid;
+	}
+			]]></add>
+		</operation>
+	</file>
+	
+</modification>

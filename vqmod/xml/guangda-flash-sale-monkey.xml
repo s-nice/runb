@@ -1,0 +1,436 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<modification>
+	<id>秒杀活动插件 - 中文专业版支持Monkey模板专用</id>
+	<version>2.0</version>
+	<vqmver>2.5.0</vqmver>
+	<author>support@opencart.cn</author>
+
+	<!-- 添加购物中增加秒杀功能 -->
+	<file name="catalog/controller/checkout/cart.php">
+		<operation error="skip" info="添加秒杀商品到购物车">
+			<search position="before" index="1"><![CDATA[public function edit()]]></search>
+			<add><![CDATA[
+				/*flash sale start*/
+				public function add_flash_sale() {
+					$this->load->language('checkout/cart');
+					$this->load->language('product/flash_sale');
+
+					$json = array();
+
+					$flash_sale_id = 0;
+					$product_id = 0;
+					if (isset($this->request->post['flash_sale_id'])) {
+						$flash_sale_id = (int)$this->request->post['flash_sale_id'];
+					}
+					if (isset($this->request->post['product_id'])) {
+						$product_id = (int)$this->request->post['product_id'];
+					}
+
+					if (!$flash_sale_id || !$product_id) {
+						$json['error']['flash_sale'] = 'flash_sale_id, or product_id NULL';
+						$this->response->addHeader('Content-Type: application/json');
+						$this->response->setOutput(json_encode($json));
+						return;
+					}
+
+					$this->load->model('catalog/flash_sale');
+					$flash_sale_info = $this->model_catalog_flash_sale->getCampaign($flash_sale_id);
+
+					//判断能否秒杀
+					if (!$this->customer->isLogged()) { // 是否登录？
+						$json['error']['flash_sale'] = $this->language->get('error_login_required');
+					} elseif (!$flash_sale_info['status']) { // 秒杀活动是否启用？
+						$json['error']['flash_sale'] = $this->language->get('error_flash_sale_disabled');
+					} elseif (time() < strtotime($flash_sale_info['start_time'])) { // 是否已开始？
+						$json['error']['flash_sale'] = $this->language->get('error_flash_sale_not_started');
+					} elseif (time() > strtotime($flash_sale_info['end_time'])) { // 是否已结束？
+						$json['error']['flash_sale'] = $this->language->get('error_flash_sale_ended');
+					} elseif (!$this->model_catalog_flash_sale->validateCustomerPermission($flash_sale_id, $this->customer->getId())) { // 是否已秒过？
+						$json['error']['flash_sale'] = $this->language->get('error_flash_sale_only_once');
+					} elseif ($this->model_catalog_flash_sale->countUsedQuantity($flash_sale_id) >= $flash_sale_info['quantity']) { // 是否已抢完？
+						$json['error']['flash_sale'] = $this->language->get('error_flash_sale_none');
+					}
+
+					if (isset($json['error']['flash_sale'])) {
+						$this->response->addHeader('Content-Type: application/json');
+						$this->response->setOutput(json_encode($json));
+						return;
+					}
+
+					//清空购物车
+					$this->cart->clear();
+
+					$product_id = (int)$flash_sale_info['product_id'];
+
+					$this->load->model('catalog/product');
+
+					$product_info = $this->model_catalog_product->getProduct($product_id);
+
+					if ($product_info) {
+
+						//强制购买数量为1
+						$quantity = 1;
+
+						if (isset($this->request->post['option'])) {
+							$option = array_filter($this->request->post['option']);
+						} else {
+							$option = array();
+						}
+
+						$product_options = $this->model_catalog_product->getProductOptions($this->request->post['product_id']);
+
+						foreach ($product_options as $product_option) {
+							if ($product_option['required'] && empty($option[$product_option['product_option_id']])) {
+								$json['error']['option'][$product_option['product_option_id']] = sprintf($this->language->get('error_required'), $product_option['name']);
+							}
+						}
+
+						if (isset($this->request->post['recurring_id'])) {
+							$recurring_id = $this->request->post['recurring_id'];
+						} else {
+							$recurring_id = 0;
+						}
+
+						$recurrings = $this->model_catalog_product->getProfiles($product_info['product_id']);
+
+						if ($recurrings) {
+							$recurring_ids = array();
+
+							foreach ($recurrings as $recurring) {
+								$recurring_ids[] = $recurring['recurring_id'];
+							}
+
+							if (!in_array($recurring_id, $recurring_ids)) {
+								$json['error']['recurring'] = $this->language->get('error_recurring_required');
+							}
+						}
+
+						if (!$json) {
+
+							//添加秒杀记录
+							$flash_sale_info = $this->model_catalog_flash_sale->addCustomerActivity($flash_sale_id, $this->customer->getId(), $product_id);
+
+							$this->cart->add($this->request->post['product_id'], $quantity, $option, $recurring_id);
+
+							$json['success'] = sprintf($this->language->get('text_flash_sale_success'), $this->url->link('product/product', 'product_id=' . $this->request->post['product_id']), $product_info['name'], $this->url->link('checkout/cart'));
+
+							unset($this->session->data['shipping_method']);
+							unset($this->session->data['shipping_methods']);
+							unset($this->session->data['payment_method']);
+							unset($this->session->data['payment_methods']);
+
+							// Totals
+							$this->load->model('extension/extension');
+
+							$total_data = array();
+							$total = 0;
+							$taxes = $this->cart->getTaxes();
+
+							// Display prices
+							if (($this->config->get('config_customer_price') && $this->customer->isLogged()) || !$this->config->get('config_customer_price')) {
+								$sort_order = array();
+
+								$results = $this->model_extension_extension->getExtensions('total');
+
+								foreach ($results as $key => $value) {
+									$sort_order[$key] = $this->config->get($value['code'] . '_sort_order');
+								}
+
+								array_multisort($sort_order, SORT_ASC, $results);
+
+								foreach ($results as $result) {
+									if ($this->config->get($result['code'] . '_status')) {
+										$this->load->model('total/' . $result['code']);
+
+										$this->{'model_total_' . $result['code']}->getTotal($total_data, $total, $taxes);
+									}
+								}
+
+								$sort_order = array();
+
+								foreach ($total_data as $key => $value) {
+									$sort_order[$key] = $value['sort_order'];
+								}
+
+								array_multisort($sort_order, SORT_ASC, $total_data);
+							}
+
+							$json['total'] = sprintf($this->language->get('text_items'), $this->cart->countProducts() + (isset($this->session->data['vouchers']) ? count($this->session->data['vouchers']) : 0), $this->currency->format($total));
+						} else {
+							$json['redirect'] = str_replace('&amp;', '&', $this->url->link('product/product', 'product_id=' . $this->request->post['product_id']));
+						}
+					}
+
+					$this->response->addHeader('Content-Type: application/json');
+					$this->response->setOutput(json_encode($json));
+				}
+				/*flash sale end*/
+			]]></add>
+		</operation>
+	</file>
+
+	<!-- 修改购物车中秒杀商品价格计算规则 -->
+	<file name="system/library/cart.php">
+		<operation error="skip" info="">
+			<search position="before" index="1"><![CDATA[// Reward Points]]></search>
+			<add><![CDATA[
+				if ($this->config->get('flash_sale_status') && $cart['quantity'] == 1 && $this->customer->isLogged()) { //商品数量 == 1时，检查是否是秒杀商品
+					//是否是秒杀商品？是否已过15分钟支付时间？是否在活动开始结束时间内秒杀到（防作弊）？秒杀活动状态是否为1？
+					$sql = "SELECT * FROM " . DB_PREFIX . "flash_sale_activity fsa LEFT JOIN " . DB_PREFIX . "flash_sale fs ON(fsa.flash_sale_id = fs.flash_sale_id AND fsa.product_id = fs.product_id) WHERE fsa.customer_id = '" . (int)$this->customer->getId() . "' AND fsa.product_id = '" . (int)$cart['product_id'] . "' AND DATE_ADD(fsa.date_added, interval 15 minute) >= NOW() AND fs.start_time <= fsa.date_added AND fs.end_time >= fsa.date_added AND fs.status = 1";
+
+					$flash_sale_query = $this->db->query($sql);
+					if ($flash_sale_query->num_rows) {
+						foreach ($flash_sale_query->rows as $flash_sale) {
+							$price = $flash_sale['flash_sale_price'];
+						}
+					}
+				}
+			]]></add>
+		</operation>
+	</file>
+
+	<!-- 秒杀时间内，产品详情页面直接跳转至秒杀页面 -->
+	<file name="catalog/controller/product/product.php">
+		<operation error="skip" info="">
+			<search position="after" index="1"><![CDATA[$product_info = $this->model_catalog_product->getProduct($product_id);]]></search>
+			<add><![CDATA[
+				/*flash sale start*/
+				if ($this->config->get('flash_sale_status') && $product_info && $this->config->get('config_template') != 'mobile') {
+					$this->load->model('catalog/flash_sale');
+					$flash_sale_id = $this->model_catalog_flash_sale->checkProductHasCampaign($product_id);
+					if($flash_sale_id) {
+						$this->response->redirect(str_replace('&amp;', '&', $this->response->redirect($this->url->link('product/flash_sale', '&id=' . $flash_sale_id))));
+					}
+				}
+				/*flash sale end*/
+			]]></add>
+		</operation>
+	</file>
+
+	<!-- 在商品详情模板上增加秒杀功能 -->
+	<file name="catalog/view/theme/monkey/template/product/product.tpl">
+		<operation error="skip" info="秒杀商品显示秒杀价格信息">
+			<search position="before" index="1"><![CDATA[<?php if ($price) { ?>]]></search>
+			<add><![CDATA[
+				<!--flash sale start-->
+				<?php if (isset($flash_sale)) { ?>
+					<?php if ($flash_sale['flash_sale_price']) { ?>
+					<ul class="list-unstyled">
+					  <li><span style="text-decoration: line-through;"><?php echo $price; ?></span></li>
+					  <li>
+					    <h2><?php echo $flash_sale['flash_sale_price']; ?></h2>
+					  </li>
+					  <?php if ($tax) { ?>
+					  <li><?php echo $text_tax; ?> <?php echo $tax; ?></li>
+					  <?php } ?>
+					  <li><strong><?php echo $text_quantity; ?> <?php echo $flash_sale['display_quantity']; ?></strong></li>
+					  <?php if ($points) { ?>
+					  <li><?php echo $text_points; ?> <?php echo $points; ?></li>
+					  <?php } ?>
+					  <?php if ($discounts) { ?>
+					  <li>
+					    <hr>
+					  </li>
+					  <?php foreach ($discounts as $discount) { ?>
+					  <li><?php echo $discount['quantity']; ?><?php echo $text_discount; ?><?php echo $discount['price']; ?></li>
+					  <?php } ?>
+					  <?php } ?>
+					</ul>
+					<?php } ?>
+				<?php } else { ?>
+				<!--flash sale end-->
+			]]></add>
+		</operation>
+
+		<operation error="skip" info="非秒杀商品显示原价格信息">
+			<search position="before" index="1"><![CDATA[<div id="product">]]></search>
+			<add><![CDATA[
+				<!--flash sale start-->
+				<?php } ?>
+				<!--flash sale end-->
+			]]></add>
+		</operation>
+
+		<operation error="skip" info="秒杀商品显示倒计时和秒杀按钮">
+			<search position="before" index="1"><![CDATA[<div class="product-cart-action">]]></search>
+			<add><![CDATA[
+				<!--flash sale start-->
+				<?php if (isset($flash_sale)) { ?>
+				<?php if ($flash_sale['seconds_to_start']) { ?>
+				<div class="flash-sale-info to-start" style="max-width: 400px">
+				  <div class="countdown-title"><?php echo $text_flash_sale_countdown_start; ?></div>
+				  <div class="countdown" id="flash-sale-<?php echo $flash_sale['product_id']?>-countdown">
+				    <span>0<div><?php echo $text_day; ?></div></span>
+				    <span>0<div><?php echo $text_hour; ?></div></span>
+				    <span>0<div><?php echo $text_minute; ?></div></span>
+				    <span>0<div><?php echo $text_second; ?></div></span>
+				  </div>
+				  <button type="button" id="button-flash-sale" data-loading-text="<?php echo $text_loading; ?>" class="btn btn-primary btn-lg btn-block disabled"><?php echo $text_flash_sale_soon; ?></button>
+				</div>
+				<?php } elseif ($flash_sale['seconds_to_end'] && ($flash_sale['used_quantity'] < $flash_sale['quantity'])) {?>
+				<div class="flash-sale-info to-end" style="max-width: 400px">
+				  <div class="countdown-title"><?php echo $text_flash_sale_countdown_end; ?></div>
+				  <div class="countdown" id="flash-sale-<?php echo $flash_sale['product_id']?>-countdown">
+				    <span>0<div><?php echo $text_day; ?></div></span>
+				    <span>0<div><?php echo $text_hour; ?></div></span>
+				    <span>0<div><?php echo $text_minute; ?></div></span>
+				    <span>0<div><?php echo $text_second; ?></div></span>
+				  </div>
+				  <button type="button" id="button-flash-sale" data-loading-text="<?php echo $text_loading; ?>" class="btn btn-primary btn-lg btn-block"><?php echo $text_flash_sale_in_now; ?></button>
+				</div>
+				<?php } else { ?>
+				<div class="flash-sale-info to-end" style="max-width: 400px">
+				  <div class="countdown" id="flash-sale-<?php echo $flash_sale['product_id']?>-countdown">
+				    <div class="ended"><?php echo $text_flash_sale_ended; ?></div>
+				  </div>
+				  <a href="<?php echo $flash_sale['product_href'] ?>" class="btn btn-primary btn-lg btn-block"><?php echo $text_flash_sale_full_price; ?></a>
+				</div>
+				<?php } ?>
+				<div class="flash-sale-tips"><i class="fa fa-info-circle"></i> <?php echo $text_flash_sale_tips; ?></div>
+				<input type="hidden" name="quantity" value="1" />
+				<input type="hidden" name="product_id" value="<?php echo $product_id; ?>" />
+				<input type="hidden" name="flash_sale_id" value="<?php echo $flash_sale['flash_sale_id']; ?>" />
+				<?php } else { ?>
+				<!--flash sale end-->
+			]]></add>
+		</operation>
+
+		<operation error="skip" info="非秒杀商品显示原购买按钮">
+			<search position="before" index="1" offset="1"><![CDATA[<div class="alert alert-info"><i class="fa fa-info-circle"></i> <?php echo $text_minimum; ?></div>]]></search>
+			<add><![CDATA[
+				<!--flash sale start-->
+				<?php } ?>
+				<!--flash sale end-->
+			]]></add>
+		</operation>
+
+		<operation error="skip" info="添加秒杀规则TAB">
+			<search position="before" index="1"><![CDATA[<ul class="nav nav-tabs">]]></search>
+			<add><![CDATA[
+				<!--flash sale start-->
+				<?php if (isset($flash_sale)) { ?>
+				<?php if ($text_flash_sale_rule): ?>
+				<ul class="nav nav-tabs">
+				  <li class="active"><a href="#tab-flash-sale-desc" data-toggle="tab"><?php echo $text_flash_sale_rule; ?></a></li>
+				</ul>
+				<div class="tab-content">
+				  <div class="tab-pane active" id="tab-flash-sale-desc"><?php echo $flash_sale['description']; ?></div>
+				</div>
+				<?php endif ?>
+				<?php } ?>
+				<!--flash sale end-->
+			]]></add>
+		</operation>
+
+		<operation error="skip" info="添加秒杀倒计时js">
+			<search position="before" index="1"><![CDATA[<?php echo $footer; ?>]]></search>
+			<add><![CDATA[
+				<!--flash sale start-->
+				<?php if (isset($flash_sale)) { ?>
+				<script type="text/javascript"><!--
+					$('#tab-flash-sale-desc img').addClass('img-responsive');
+					<?php if ($flash_sale['seconds_to_start']): ?>
+					  $('#flash-sale-<?php echo $flash_sale['product_id']?>-countdown').countdown('<?php echo $flash_sale['start_time']; ?>')
+					  .on('update.countdown', function (event) {
+					    $(this).html(event.strftime('<span>%D<div><?php echo $text_day; ?></div></span><span>%H<div><?php echo $text_minute; ?></div></span><span>%M<div><?php echo $text_hour; ?></div></span><span>%S<div><?php echo $text_second; ?></div></span>'));
+					  })
+					  .on('finish.countdown', function(event) {
+					    $('.countdown-title').html('<?php echo $text_flash_sale_countdown_end; ?>');
+					    $('.flash-sale-info').removeClass('to-start');
+					    $('.flash-sale-info').addClass('to-end');
+					    $(this).siblings('button').html('<?php echo $text_flash_sale_in_now; ?>');
+					    $(this).siblings('button').removeClass('disabled');
+					    $('#flash-sale-<?php echo $flash_sale['product_id']?>-countdown').countdown('<?php echo $flash_sale['end_time']; ?>')
+					    .on('update.countdown', function (event) {
+					      $(this).html(event.strftime('<span>%D<div><?php echo $text_day; ?></div></span><span>%H<div><?php echo $text_minute; ?></div></span><span>%M<div><?php echo $text_hour; ?></div></span><span>%S<div><?php echo $text_second; ?></div></span>'));
+					    })
+					    .on('finish.countdown', function(event) {
+					      $(this).html('<div class="ended"><?php echo $text_flash_sale_ended; ?></div>');
+					      $('#button-flash-sale').remove();
+					      $('.flash-sale-info').append('<a href="<?php echo $flash_sale['product_href'] ?>" class="btn btn-primary btn-lg btn-block"><?php echo $text_flash_sale_full_price; ?></a>');
+					    })
+					  })
+					<?php endif; ?>
+					<?php if (!$flash_sale['seconds_to_start'] && $flash_sale['seconds_to_end']): ?>
+					$('#flash-sale-<?php echo $flash_sale['product_id']?>-countdown').countdown('<?php echo $flash_sale['end_time']; ?>')
+					  .on('update.countdown', function (event) {
+					    $(this).html(event.strftime('<span>%D<div><?php echo $text_day; ?></div></span><span>%H<div><?php echo $text_minute; ?></div></span><span>%M<div><?php echo $text_hour; ?></div></span><span>%S<div><?php echo $text_second; ?></div></span>'));
+					  })
+					  .on('finish.countdown', function(event) {
+					    $(this).html('<div class="ended"><?php echo $text_flash_sale_ended; ?></div>');
+					    $('#button-flash-sale').remove();
+					    $('.flash-sale-info').append('<a href="<?php echo $flash_sale['product_href'] ?>" class="btn btn-primary btn-lg btn-block"><?php echo $text_flash_sale_full_price; ?></a>');
+					  })
+					<?php endif; ?>
+				//--></script>
+				<?php } ?>
+				<!--flash sale end-->
+			]]></add>
+		</operation>
+
+		<operation error="skip" info="添加秒杀按钮js">
+			<search position="before" index="1"><![CDATA[<?php echo $footer; ?>]]></search>
+			<add><![CDATA[
+				<!--flash sale start-->
+				<?php if (isset($flash_sale)) { ?>
+				<script type="text/javascript"><!--
+				$('#button-flash-sale').on('click', function() {
+				  $.ajax({
+				    url: 'index.php?route=checkout/cart/add_flash_sale',
+				    type: 'post',
+				    data: $('#product input[type=\'text\'], #product input[type=\'hidden\'], #product input[type=\'radio\']:checked, #product input[type=\'checkbox\']:checked, #product select, #product textarea'),
+				    dataType: 'json',
+				    beforeSend: function() {
+				      $('#button-flash-sale').button('loading');
+				    },
+				    complete: function() {
+				      $('#button-flash-sale').button('reset');
+				    },
+				    success: function(json) {
+				      $('.alert, .text-danger').remove();
+				      $('.form-group').removeClass('has-error');
+
+				      if (json['error']) {
+				        if (json['error']['option']) {
+				          for (i in json['error']['option']) {
+				            var element = $('#input-option' + i.replace('_', '-'));
+
+				            if (element.parent().hasClass('input-group')) {
+				              element.parent().after('<div class="text-danger">' + json['error']['option'][i] + '</div>');
+				            } else {
+				              element.after('<div class="text-danger">' + json['error']['option'][i] + '</div>');
+				            }
+				          }
+				        }
+
+				        if (json['error']['recurring']) {
+				          $('select[name=\'recurring_id\']').after('<div class="text-danger">' + json['error']['recurring'] + '</div>');
+				        }
+
+				        if (json['error']['flash_sale']) {
+				          $('.breadcrumb').after('<div class="alert alert-danger">' + json['error']['flash_sale'] + '<button type="button" class="close" data-dismiss="alert">&times;</button></div>');
+				        }
+
+				        // Highlight any found errors
+				        $('.text-danger').parent().addClass('has-error');
+				      }
+
+				      if (json['success']) {
+				        $('.breadcrumb').after('<div class="alert alert-success">' + json['success'] + '<button type="button" class="close" data-dismiss="alert">&times;</button></div>');
+				        $('#cart #cart-total').html(json['total']);
+				        $('html, body').animate({ scrollTop: 0 }, 'slow');
+				        $('#cart > .cart-content').load('index.php?route=common/cart/info ul li');
+				      }
+				    },
+				        error: function(xhr, ajaxOptions, thrownError) {
+				            alert(thrownError + "\r\n" + xhr.statusText + "\r\n" + xhr.responseText);
+				        }
+				  });
+				});
+				//--></script>
+				<?php } ?>
+				<!--flash sale end-->
+			]]></add>
+		</operation>
+	</file>
+</modification>

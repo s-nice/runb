@@ -1,0 +1,125 @@
+﻿<modification>
+	<id>guangda_tl_order_product_review</id>
+	<version>0.5</version>
+	<vqmver>2.5.1</vqmver>
+	<author>www.opencart.cn</author>
+
+	<!-- 前台个人中心历史订单详情中增加“评论”按钮 -->
+	<file name="catalog/controller/account/order.php">
+		<operation>
+			<search position="before"><![CDATA[
+				$data['products'][] = array(
+			]]></search>
+			<add><![CDATA[
+			$data['button_oreview'] = $this->language->get('button_oreview');
+
+			$this->load->model('account/oreview');
+			$is_reviewed = $this->model_account_oreview->isReviewed($product['order_product_id']);
+			$complated = in_array($order_info['order_status_id'], $this->config->get('config_complete_status'));
+			]]></add>
+		</operation>
+		<operation>
+			<search position="before"><![CDATA[
+					'return'
+			]]></search>
+			<add><![CDATA[
+					'oreview'   => $is_reviewed || !$complated ? '' : $this->url->link('account/oreview/add', 'order_id=' . $order_info['order_id'] . '&order_product_id=' . $product['order_product_id'], 'SSL'),
+			]]></add>
+		</operation>
+	</file>
+	<file name="catalog/language/*/account/order.php">
+		<operation>
+			<search position="after"><![CDATA[
+<?php
+			]]></search>
+			<add><![CDATA[
+$_['button_oreview'] = '评论';
+			]]></add>
+		</operation>
+	</file>
+	<file name="catalog/view/theme/default/template/account/order_info.tpl">
+		<operation>
+			<search position="before"><![CDATA[
+                echo $product['return'];
+			]]></search>
+			<add><![CDATA[
+							<?php if ($product['oreview']) { ?>
+                <a href="<?php echo $product['oreview']; ?>" data-toggle="tooltip" title="<?php echo $button_oreview; ?>" class="btn btn-danger"><i class="fa fa-pencil-square-o"></i></a>
+							<?php } ?>
+			]]></add>
+		</operation>
+	</file>
+
+	<!-- 前台产品页原评论隐藏，评论列表改为获取订单评论 -->
+	<file name="catalog/controller/product/product.php">
+		<operation>
+			<search position="before"><![CDATA[$product_info['reviews']]]></search>
+			<add><![CDATA[
+		$this->load->model('account/oreview');
+			]]></add>
+		</operation>
+		<operation>
+			<search position="ireplace"><![CDATA[$product_info['reviews']]]></search>
+			<add><![CDATA[$this->model_account_oreview->getTotalOreviewsByProductId($product_id)]]></add>
+		</operation>
+	</file>
+	<file name="catalog/view/theme/*/template/product/product.tpl">
+		<operation>
+			<search position="ireplace"><![CDATA[index.php?route=product/product/review]]></search>
+			<add><![CDATA[index.php?route=account/oreview/review]]></add>
+		</operation>
+		<operation>
+			<search position="replace" offset="1"><![CDATA[
+              <form class="form-horizontal" id="form-review">
+			]]></search>
+			<add><![CDATA[
+               <div id="review"></div>
+              <form class="form-horizontal hidden" id="form-review">
+			]]></add>
+		</operation>
+	</file>
+
+	<!-- 后台评论菜单指向订单评论 -->
+	<file name="admin/controller/common/menu.php">
+		<operation>
+			<search position="ireplace"><![CDATA[catalog/review]]></search>
+			<add><![CDATA[catalog/oreview]]></add>
+		</operation>
+	</file>
+
+	<!-- 后台header右上角新评论数量通知功能修改 -->
+	<file name="admin/controller/common/header.php">
+		<operation>
+			<search position="ireplace"><![CDATA[catalog/review]]></search>
+			<add><![CDATA[catalog/oreview]]></add>
+		</operation>
+		<operation>
+			<search position="ireplace"><![CDATA[model_catalog_review]]></search>
+			<add><![CDATA[model_catalog_oreview]]></add>
+		</operation>
+	</file>
+
+	<!-- 账户中心模块添加“商品评论”链接 -->
+	<file name="catalog/view/theme/*/template/module/account.tpl">
+		<operation>
+			<search position="iafter"><![CDATA[
+        <a href="<?php echo $order; ?>" class="list-group-item"><?php echo $text_order; ?></a>
+			]]></search>
+			<add><![CDATA[
+		<a href="<?php echo $oreview; ?>" class="list-group-item"><?php echo $text_oreview; ?></a>
+			]]></add>
+		</operation>
+	</file>
+	<file name="catalog/controller/module/account.php">
+		<operation>
+			<search position="after"><![CDATA[
+		$data['order'] = $this->url->link('account/order', '', 'SSL');
+			]]></search>
+			<add><![CDATA[
+		$this->load->language('account/oreview');
+		$data['text_oreview'] = $this->language->get('text_oreview');
+		$data['oreview'] = $this->url->link('account/oreview', '', 'SSL');
+			]]></add>
+		</operation>
+	</file>
+</modification>

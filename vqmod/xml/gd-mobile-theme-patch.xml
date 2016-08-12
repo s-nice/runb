@@ -1,0 +1,475 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<modification>
+	<id>MOBILE Theme Patch</id>
+	<version>1.0</version>
+	<vqmver>2.5.1.1</vqmver>
+	<author>GuangDa email: suport@opencart.cn</author>
+
+	<file name="system/library/config.php">
+		<operation error="log" info="">
+			<search position="after"><![CDATA[public function get($key) {]]></search>
+			<add><![CDATA[
+				if(is_mobile() && 'config_template' === $key){
+					return 'mobile';
+				}
+      ]]></add>
+		</operation>
+	</file>
+
+	<file name="system/startup.php">
+		<operation error="log" info="">
+			<search position="after"><![CDATA[// Helper]]></search>
+			<add><![CDATA[
+				require_once(DIR_SYSTEM . 'helper/device.php');
+      ]]></add>
+		</operation>
+	</file>
+
+	<file path="catalog/controller/common/" name="*.php">
+		<operation error="skip" info="">
+			<search position="replace"><![CDATA[$data['modules'][] = $this->load->controller('module/' . $part[0]);]]></search>
+			<add><![CDATA[
+				if (is_mobile()) {
+					if ($this->config->get($part[0] . '_mobile_only')) {
+						$data['modules'][] = $this->load->controller('module/' . $part[0]);
+					}
+				} else {
+					if (!$this->config->get($part[0] . '_mobile_only')) {
+						$data['modules'][] = $this->load->controller('module/' . $part[0]);
+					}
+				}
+			]]></add>
+		</operation>
+
+		<operation error="skip" info="">
+			<search position="replace"><![CDATA[$data['modules'][] = $this->load->controller('module/' . $part[0], $setting_info);]]></search>
+			<add><![CDATA[
+				if (is_mobile()) {
+					if (isset($setting_info['mobile_only']) && $setting_info['mobile_only']) {
+						$data['modules'][] = $this->load->controller('module/' . $part[0], $setting_info);
+					}
+				} else {
+					if (!isset($setting_info['mobile_only']) || !$setting_info['mobile_only']) {
+						$data['modules'][] = $this->load->controller('module/' . $part[0], $setting_info);
+					}
+				}
+			]]></add>
+		</operation>
+	</file>
+
+	<file name="catalog/controller/common/header.php">
+		<operation error="skip" info="底部按钮文字">
+			<search position="after"><![CDATA[$data['text_account'] = $this->language->get('text_account');]]></search>
+			<add><![CDATA[
+				if (is_mobile()) {
+				$data['cart_count'] = $this->cart->countProducts();
+				$this->load->language('mobile/mobile');
+					$data['text_search'] = $this->language->get('text_search');
+					$data['text_add_to_cart'] = $this->language->get('text_add_to_cart');
+					$data['text_buy_now'] = $this->language->get('text_buy_now');
+					$data['text_wishlist_text'] = $this->language->get('text_wishlist_text');
+					$data['text_to_pay'] = $this->language->get('text_to_pay');
+					$data['text_select_all'] = $this->language->get('text_select_all');
+				}
+      ]]></add>
+		</operation>
+
+		<operation error="skip" info="搜索和所有分类链接">
+			<search position="after"><![CDATA[$data['home'] = $this->url->link('common/home');]]></search>
+			<add><![CDATA[
+				if (is_mobile()) {
+					$data['link_search'] = $this->url->link('product/search');
+					$data['link_category'] = $this->url->link('mobile/categoryhome');
+					$data['text_please_wait'] = $this->language->get('text_please_wait');
+				}
+      ]]></add>
+		</operation>
+	</file>
+
+	<file name="catalog/controller/common/footer.php">
+		<operation error="skip" info="添加多语言和多货币">
+			<search position="after"><![CDATA[$data['powered'] = sprintf($this->language->get('text_powered'), $this->config->get('config_name'), date('Y', time()));]]></search>
+			<add><![CDATA[
+				if (is_mobile()) {
+					if (!isset($this->request->get['route'])) {
+						$data['redirect'] = $this->url->link('common/home');
+					} else {
+						$url_data = $this->request->get;
+
+						unset($url_data['_route_']);
+
+						$route = $url_data['route'];
+
+						unset($url_data['route']);
+
+						$url = '';
+
+						if ($url_data) {
+							$url = '&' . urldecode(http_build_query($url_data, '', '&'));
+						}
+
+						$data['redirect'] = $this->url->link($route, $url, $this->request->server['HTTPS']);
+					}
+
+					$this->load->language('mobile/mobile');
+					$data['text_cancel'] = $this->language->get('text_cancel');
+					$data['text_select_language'] = $this->language->get('text_select_language');
+					$data['language_action'] = $this->url->link('common/language/language', '', $this->request->server['HTTPS']);
+					$data['current_lang_code'] = $this->session->data['language'];
+					$this->load->model('localisation/language');
+					$data['languages'] = array();
+					$results = $this->model_localisation_language->getLanguages();
+					foreach ($results as $result) {
+						if ($result['status']) {
+							$data['languages'][] = array(
+								'name'  => $result['name'],
+								'code'  => $result['code'],
+								'image' => $result['image']
+							);
+						}
+					}
+
+					$data['text_select_currency'] = $this->language->get('text_select_currency');
+					$data['currency_action'] = $this->url->link('common/currency/currency', '', $this->request->server['HTTPS']);
+					$data['current_currency_code'] = $this->currency->getCode();
+					$data['currencies'] = array();
+					$this->load->model('localisation/currency');
+					$results = $this->model_localisation_currency->getCurrencies();
+					foreach ($results as $result) {
+						if ($result['status']) {
+							$data['currencies'][] = array(
+								'title'        => $result['title'],
+								'code'         => $result['code'],
+								'symbol_left'  => $result['symbol_left'],
+								'symbol_right' => $result['symbol_right']
+							);
+						}
+					}
+				}
+      ]]></add>
+		</operation>
+	</file>
+
+	<file name="catalog/controller/common/home.php">
+		<operation error="log" info="">
+			<search position="before"><![CDATA[$this->document->setKeywords($this->config->get('config_meta_keyword'));]]></search>
+			<add><![CDATA[
+				if (is_mobile()) {
+					$this->load->language('mobile/mobile');
+					$data['text_search'] = $this->language->get('text_search');
+				}
+      ]]></add>
+		</operation>
+	</file>
+
+	<file path="catalog/controller/product/" name="category.php,search.php,manufacturer.php">
+		<operation error="log" info="添加 placeholder 图片">
+			<search position="before"><![CDATA[$results = $this->model_catalog_product->getProducts($filter_data);]]></search>
+			<add><![CDATA[
+				if (is_mobile()) {
+					$data['placeholder'] = $this->model_tool_image->resize('placeholder.png', $this->config->get('config_image_product_width'), $this->config->get('config_image_product_height'));
+				}
+      ]]></add>
+		</operation>
+	</file>
+
+	<file name="catalog/controller/product/product.php">
+		<operation error="log" info="">
+			<search position="before"><![CDATA[$this->document->addStyle('catalog/view/javascript/jquery/datetimepicker/bootstrap-datetimepicker.min.css');]]></search>
+			<add><![CDATA[
+				if (is_mobile()) {
+					$this->document->addStyle('catalog/view/theme/mobile/javascript/jquery/owl-carousel2/assets/owl.carousel.min.css');
+					$this->document->addStyle('catalog/view/theme/mobile/javascript/jquery/owl-carousel2/assets/owl.theme.default.min.css');
+					$this->document->addScript('catalog/view/theme/mobile/javascript/jquery/owl-carousel2/owl.carousel.min.js');
+					$this->document->addScript('catalog/view/theme/mobile/javascript/jquery/swipebox/jquery.swipebox.min.js');
+					$this->document->addStyle('catalog/view/theme/mobile/javascript/jquery/swipebox/swipebox.min.css');
+					$this->load->language('mobile/mobile');
+					$data['text_details'] = $this->language->get('text_details');
+					$data['text_discount_label'] = $this->language->get('text_discount_label');
+					$data['text_tab_review'] = $this->language->get('text_tab_review');
+					$data['text_option_required'] = $this->language->get('text_option_required');
+					$data['text_added_to_cart'] = $this->language->get('text_added_to_cart');
+					$data['text_added_to_cart_redirect'] = $this->language->get('text_added_to_cart_redirect');
+				}
+      ]]></add>
+		</operation>
+	</file>
+
+	<file name="catalog/controller/checkout/cart.php">
+		<operation error="log" info="">
+			<search position="after"><![CDATA[$data['text_next_choice'] = $this->language->get('text_next_choice');]]></search>
+			<add><![CDATA[
+				if (is_mobile()) {
+					$this->load->language('mobile/mobile');
+				}
+      ]]></add>
+		</operation>
+
+		<operation error="log" info="">
+			<search position="after"><![CDATA[$products = $this->cart->getCartProducts();]]></search>
+			<add><![CDATA[
+				if (is_mobile()) {
+					$data['placeholder'] = $this->model_tool_image->resize('placeholder.png', $this->config->get('config_image_cart_width'), $this->config->get('config_image_cart_height'));
+				}
+      ]]></add>
+		</operation>
+
+		<operation error="log" info="Empty cart page">
+			<search position="replace" offset="4"><![CDATA[if (file_exists(DIR_TEMPLATE . $this->config->get('config_template') . '/template/error/not_found.tpl')) {]]></search>
+			<add><![CDATA[
+				if (is_mobile()) {
+					$data['home'] = $this->url->link('common/home');
+					if (file_exists(DIR_TEMPLATE . $this->config->get('config_template') . '/template/checkout/cart_empty.tpl')) {
+						$this->response->setOutput($this->load->view($this->config->get('config_template') . '/template/checkout/cart_empty.tpl', $data));
+					} else {
+						$this->response->setOutput($this->load->view('default/template/checkout/cart_empty.tpl', $data));
+					}
+				} else {
+					if (file_exists(DIR_TEMPLATE . $this->config->get('config_template') . '/template/error/not_found.tpl')) {
+						$this->response->setOutput($this->load->view($this->config->get('config_template') . '/template/error/not_found.tpl', $data));
+					} else {
+						$this->response->setOutput($this->load->view('default/template/error/not_found.tpl', $data));
+					}
+				}
+      ]]></add>
+		</operation>
+	</file>
+
+	<file name="catalog/controller/checkout/checkout.php">
+		<operation error="log" info="">
+			<search position="before"><![CDATA[$data['shipping_required'] = $this->cart->hasShipping();]]></search>
+			<add><![CDATA[
+				if (is_mobile()) {
+					// Payment Methods
+					$method_count = 0;
+					$this->load->model('extension/extension');
+					$results = $this->model_extension_extension->getExtensions('payment');
+					$recurring = $this->cart->hasRecurringProducts();
+
+					foreach ($results as $result) {
+						if ($this->config->get($result['code'] . '_status')) {
+							$method_count += 1;
+						}
+					}
+					$data['only_one_payment_method'] = false;;
+					if($method_count == 1){
+						$data['only_one_payment_method'] = true;;
+					}
+				}
+      ]]></add>
+		</operation>
+	</file>
+
+	<file name="catalog/controller/checkout/confirm.php">
+		<operation error="log" info="添加商品列表显示">
+			<search position="after"><![CDATA[$this->session->data['order_id'] = $this->model_checkout_order->addOrder($order_data);]]></search>
+			<add><![CDATA[
+				if (is_mobile()) {
+					$data['text_recurring_item'] = $this->language->get('text_recurring_item');
+					$data['text_payment_recurring'] = $this->language->get('text_payment_recurring');
+
+					$data['column_name'] = $this->language->get('column_name');
+					$data['column_model'] = $this->language->get('column_model');
+					$data['column_quantity'] = $this->language->get('column_quantity');
+					$data['column_price'] = $this->language->get('column_price');
+					$data['column_total'] = $this->language->get('column_total');
+
+					$this->load->model('tool/upload');
+
+					$data['products'] = array();
+
+					foreach ($this->cart->getProducts() as $product) {
+						$option_data = array();
+
+						foreach ($product['option'] as $option) {
+							if ($option['type'] != 'file') {
+								$value = $option['value'];
+							} else {
+								$upload_info = $this->model_tool_upload->getUploadByCode($option['value']);
+
+								if ($upload_info) {
+									$value = $upload_info['name'];
+								} else {
+									$value = '';
+								}
+							}
+
+							$option_data[] = array(
+								'name'  => $option['name'],
+								'value' => (utf8_strlen($value) > 20 ? utf8_substr($value, 0, 20) . '..' : $value)
+							);
+						}
+
+						$recurring = '';
+
+						if ($product['recurring']) {
+							$frequencies = array(
+								'day'        => $this->language->get('text_day'),
+								'week'       => $this->language->get('text_week'),
+								'semi_month' => $this->language->get('text_semi_month'),
+								'month'      => $this->language->get('text_month'),
+								'year'       => $this->language->get('text_year'),
+							);
+
+							if ($product['recurring']['trial']) {
+								$recurring = sprintf($this->language->get('text_trial_description'), $this->currency->format($this->tax->calculate($product['recurring']['trial_price'] * $product['quantity'], $product['tax_class_id'], $this->config->get('config_tax'))), $product['recurring']['trial_cycle'], $frequencies[$product['recurring']['trial_frequency']], $product['recurring']['trial_duration']) . ' ';
+							}
+
+							if ($product['recurring']['duration']) {
+								$recurring .= sprintf($this->language->get('text_payment_description'), $this->currency->format($this->tax->calculate($product['recurring']['price'] * $product['quantity'], $product['tax_class_id'], $this->config->get('config_tax'))), $product['recurring']['cycle'], $frequencies[$product['recurring']['frequency']], $product['recurring']['duration']);
+							} else {
+								$recurring .= sprintf($this->language->get('text_payment_cancel'), $this->currency->format($this->tax->calculate($product['recurring']['price'] * $product['quantity'], $product['tax_class_id'], $this->config->get('config_tax'))), $product['recurring']['cycle'], $frequencies[$product['recurring']['frequency']], $product['recurring']['duration']);
+							}
+						}
+
+						$data['products'][] = array(
+							'cart_id'    => $product['cart_id'],
+							'product_id' => $product['product_id'],
+							'name'       => $product['name'],
+							'model'      => $product['model'],
+							'option'     => $option_data,
+							'recurring'  => $recurring,
+							'quantity'   => $product['quantity'],
+							'subtract'   => $product['subtract'],
+							'price'      => $this->currency->format($this->tax->calculate($product['price'], $product['tax_class_id'], $this->config->get('config_tax'))),
+							'total'      => $this->currency->format($this->tax->calculate($product['price'], $product['tax_class_id'], $this->config->get('config_tax')) * $product['quantity']),
+							'href'       => $this->url->link('product/product', 'product_id=' . $product['product_id']),
+						);
+					}
+
+					// Gift Voucher
+					$data['vouchers'] = array();
+
+					if (!empty($this->session->data['vouchers'])) {
+						foreach ($this->session->data['vouchers'] as $voucher) {
+							$data['vouchers'][] = array(
+								'description' => $voucher['description'],
+								'amount'      => $this->currency->format($voucher['amount'])
+							);
+						}
+					}
+
+					// Recharge
+					$data['recharges'] = array();
+
+					if (!empty($this->session->data['recharges'])) {
+						foreach ($this->session->data['recharges'] as $recharge) {
+							$data['recharges'][] = array(
+								'description' => $recharge['description'],
+								'amount'      => $this->currency->format($recharge['amount'])
+							);
+						}
+					}
+
+					$data['totals'] = array();
+
+					foreach ($order_data['totals'] as $total) {
+						$data['totals'][] = array(
+							'title' => $total['title'],
+							'text'  => $this->currency->format($total['value']),
+						);
+					}
+				}
+      ]]></add>
+		</operation>
+	</file>
+
+	<file name="catalog/controller/account/account.php">
+		<operation error="log" info="">
+			<search position="before"><![CDATA[$data['text_recurring'] = $this->language->get('text_recurring');]]></search>
+			<add><![CDATA[
+				if (is_mobile()) {
+					$this->load->language('mobile/mobile');
+					$data['text_order_all'] = $this->language->get('text_order_all');
+					$data['text_order_unpaid'] = $this->language->get('text_order_unpaid');
+					$data['text_order_unshipped'] = $this->language->get('text_order_unshipped');
+					$data['text_order_shipped'] = $this->language->get('text_order_shipped');
+					$data['text_all_returns'] = $this->language->get('text_all_returns');
+					$data['text_all_shipping_address'] = $this->language->get('text_all_shipping_address');
+					$this->load->language('account/coupons');
+					$data['text_coupons'] = $this->language->get('text_coupons');
+					$data['coupons'] = $this->url->link('account/coupons', '', 'SSL');
+					$data['text_logout'] = $this->language->get('text_logout');
+					$data['logout'] = $this->url->link('account/logout', '', 'SSL');
+					$data['order_unpaid'] = $this->url->link('account/order', 'type=unpaid', 'SSL');
+					$data['order_unshipped'] = $this->url->link('account/order', 'type=unshipped', 'SSL');
+					$data['order_shipped'] = $this->url->link('account/order', 'type=shipped', 'SSL');
+					$this->load->model('account/order');
+					$data['unpaid_total'] = $this->model_account_order->getTotalOrdersOfStatus0();
+					$data['unshipped_total'] = $this->model_account_order->getTotalOrdersOfStatusUnshipped();
+					$data['shipped_total'] = $this->model_account_order->getTotalOrdersOfStatusShipped();
+				}
+      ]]></add>
+		</operation>
+	</file>
+
+	<file name="catalog/controller/account/order.php">
+		<operation error="log" info="">
+			<search position="before"><![CDATA[$data['heading_title'] = $this->language->get('heading_title');]]></search>
+			<add><![CDATA[
+				if (is_mobile()) {
+					if(isset($this->request->get['type'])) {
+						$data['type'] = trim($this->request->get['type']);
+					} else {
+						$data['type'] = '';
+					}
+					$this->load->language('mobile/mobile');
+					$data['button_continue_payment'] = $this->language->get('button_continue_payment');
+					$data['text_order_not_pay_status'] = $this->language->get('text_order_not_pay_status');
+					$data['text_order_all'] = $this->language->get('text_order_all');
+					$data['text_order_unpaid'] = $this->language->get('text_order_unpaid');
+					$data['text_order_unshipped'] = $this->language->get('text_order_unshipped');
+					$data['text_order_shipped'] = $this->language->get('text_order_shipped');
+					$data['order'] = $this->url->link('account/order', '', 'SSL');
+					$data['order_unpaid'] = $this->url->link('account/order', 'type=unpaid', 'SSL');
+					$data['order_unshipped'] = $this->url->link('account/order', 'type=unshipped', 'SSL');
+					$data['order_shipped'] = $this->url->link('account/order', 'type=shipped', 'SSL');
+				}
+      ]]></add>
+		</operation>
+
+		<operation error="log" info="">
+			<search position="replace"><![CDATA[$data['orders'][] = array(]]></search>
+			<add><![CDATA[
+				if (is_mobile()) {
+					$product_list = array();
+					$product_results = $this->model_account_order->getOrderProducts($result['order_id']);
+					foreach($product_results as $product) {
+						$product_list[] = array(
+							'name' => $product['name'],
+							'total'    => $this->currency->format($product['total'] + ($this->config->get('config_tax') ? ($product['tax'] * $product['quantity']) : 0), $result['currency_code'], $result['currency_value']),
+						);
+					}
+				} else {
+					$product_list = array();
+				}
+
+				$data['orders'][] = array(
+					'product_list' => $product_list,
+      ]]></add>
+		</operation>
+	</file>
+
+	<file name="catalog/controller/account/wishlist.php">
+		<operation error="log" info="添加 placeholder 图片">
+			<search position="after"><![CDATA[$this->load->model('tool/image');]]></search>
+			<add><![CDATA[
+				if (is_mobile()) {
+					$data['placeholder'] = $this->model_tool_image->resize('placeholder.png', $this->config->get('config_image_wishlist_width'), $this->config->get('config_image_wishlist_height'));
+				}
+      ]]></add>
+		</operation>
+	</file>
+
+	<!-- patch for jd theme -->
+	<file path="catalog/controller/common/" name="footer_top.php,footer_bottom.php,content_home_slider_right.php,content_home_slider_main.php">
+		<operation error="skip" info="">
+			<search position="after"><![CDATA[public function index() {]]></search>
+			<add><![CDATA[
+				if (is_mobile()) {
+					return;
+				}
+			]]></add>
+		</operation>
+	</file>
+</modification>

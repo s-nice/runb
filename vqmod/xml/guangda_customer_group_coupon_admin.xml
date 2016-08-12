@@ -1,0 +1,308 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<modification>
+	<id>customer_coupon</id>
+	<version>For OpenCart 2.1.0.1</version>
+	<vqmver>2.5.1</vqmver>
+	<author>GuangDa email: suport@opencart.cn</author> 
+
+	<file name="admin/model/marketing/coupon.php">
+		<operation  error="abort">
+			<search position="before"><![CDATA[if (isset($data['coupon_product'])) {]]></search>
+			<add>
+				<![CDATA[
+					$this->db->query("DELETE FROM " . DB_PREFIX . "coupon_customer WHERE coupon_id = '" . (int)$coupon_id . "'");
+		
+					if (isset($data['coupon_customer'])) {
+			      foreach ($data['coupon_customer'] as $customer_id) {
+							$this->db->query("INSERT INTO " . DB_PREFIX . "coupon_customer SET coupon_id = '" . (int)$coupon_id . "', customer_id = '" . (int)$customer_id . "'");
+			      }
+					}
+					$this->db->query("DELETE FROM " . DB_PREFIX . "coupon_customer_group WHERE coupon_id = '" . (int)$coupon_id . "'");
+		
+					if (isset($data['coupon_customer_group'])) {
+			      foreach ($data['coupon_customer_group'] as $customer_group_id) {
+							$this->db->query("INSERT INTO " . DB_PREFIX . "coupon_customer_group SET coupon_id = '" . (int)$coupon_id . "', customer_group_id = '" . (int)$customer_group_id . "'");
+			      }
+					}
+				]]>
+			</add>
+		</operation>
+	</file>
+	<file name="admin/controller/marketing/coupon.php">
+		<operation  error="abort">
+			<search position="before"><![CDATA[$data['coupon_category'] = array();]]></search>
+			<add><![CDATA[
+				$data['entry_customer_group_coupon'] = $this->language->get("entry_customer_group_coupon");
+				$data['entry_customer_coupon'] = $this->language->get("entry_customer_coupon");
+				$data['help_customer_coupon'] = $this->language->get("help_customer_coupon");
+				$data['help_customer_group_coupon'] = $this->language->get("help_customer_group_coupon");
+				$data['text_generate'] = $this->language->get("text_generate");
+
+				$this->load->model('customercoupon/coupon');
+				if (isset($this->request->post['coupon_customer'])) {
+					$customers = $this->request->post['coupon_customer'];
+				} elseif (isset($this->request->get['coupon_id'])) {		
+					$customers = $this->model_customercoupon_coupon->getCouponCustomers($this->request->get['coupon_id']);
+				} else {
+					$customers = array();
+				}
+				
+				$this->load->model('customer/customer');
+				
+				$data['coupon_customer'] = array();
+				foreach ($customers as $customer_id) {
+					$customer_info = $this->model_customer_customer->getCustomer($customer_id);
+					if ($customer_info) {
+						$data['coupon_customer'][] = array(
+							'customer_id' => $customer_info['customer_id'],
+							'name'       => $customer_info['firstname']." ".$customer_info['lastname']
+						);
+					}
+				}
+
+				if (isset($this->request->post['coupon_customer_group'])) {
+					$customer_groups = $this->request->post['coupon_customer_group'];
+				} elseif (isset($this->request->get['coupon_id'])) {		
+					$customer_groups = $this->model_customercoupon_coupon->getCouponCustomerGroups($this->request->get['coupon_id']);
+				} else {
+					$customer_groups = array();
+				}
+				$this->load->model('customer/customer_group');
+	
+				$data['coupon_customer_group'] = array();
+				foreach ($customer_groups as $customer_group_id) {
+					$customer_group_info = $this->model_customer_customer_group->getCustomerGroup($customer_group_id);
+					
+					if ($customer_group_info) {
+						$data['coupon_customer_group'][] = array(
+							'customer_group_id' => $customer_group_info['customer_group_id'],
+							'name'        => $customer_group_info['name']
+						);
+					}
+				}
+				]]></add>
+		</operation>
+	</file>
+	<file name="admin/language/zh-CN/marketing/coupon.php">
+		<operation  error="abort">
+			<search position="after"><![CDATA[
+// Text
+			]]></search>
+			<add><![CDATA[
+$_['entry_customer_group_coupon']       = '客户组';
+$_['help_customer_group_coupon'] = '选择允许使用优惠券的客户组，如不选择，则允许所有客户组使用';
+$_['entry_customer_coupon']       = '客户';
+$_['help_customer_coupon']       = '选择允许使用优惠券的客户，如不选择，则允许所有客户使用';
+$_['text_generate'] = '自动生成';
+				]]></add>
+		</operation>
+	</file>
+	<file name="admin/controller/customer/customer_group.php">
+		<operation  error="abort">
+			<search position="before"><![CDATA[public function add() {]]></search>
+			<add><![CDATA[
+				public function autocomplete() {
+					$json = array();
+					
+					if (isset($this->request->get['filter_name'])) {
+						$this->load->model('customercoupon/coupon');
+						
+						$data = array(
+							'filter_name' => $this->request->get['filter_name'],
+							'start'       => 0,
+							'limit'       => 20
+						);
+						$results = $this->model_customercoupon_coupon->getCustomerGroups2($data);
+						foreach ($results as $result) {
+							$json[] = array(
+								'customer_group_id'       => $result['customer_group_id'], 
+								'name'              => strip_tags(html_entity_decode($result['name'], ENT_QUOTES, 'UTF-8'))
+							);					
+						}
+					}
+
+					$sort_order = array();
+					foreach ($json as $key => $value) {
+						$sort_order[$key] = $value['name'];
+					}
+
+					array_multisort($sort_order, SORT_ASC, $json);
+
+					$this->response->setOutput(json_encode($json));
+				}
+				]]></add>
+		</operation>
+	</file>
+	<file name="admin/view/template/marketing/coupon_form.tpl">
+		<operation  error="abort">
+			<search position="after"><![CDATA[<input type="text" name="code" value="<?php echo $code; ?>" placeholder="<?php echo $entry_code; ?>" id="input-code" class="form-control" />]]></search>
+			<add><![CDATA[
+				<span id="code" style="display: inline;"><b>[</b> <a id="code-generate" href="javascript:;"><?php echo $text_generate;?></a> <b>]</b></span>
+				<script type="text/javascript">
+					$( document ).ready(function() {
+						$('#code-generate').click(function() {
+							$.ajax({
+						        url: 'index.php?route=marketing/customercoupon/generateCoupon&token=<?php echo $token; ?>&coupon_id=<?php echo isset($coupon_id)?$coupon_id:0;?>',
+						        dataType: 'json', 
+						        type : 'get',
+						        success: function(data){
+						        $("#code").find(".loading").remove();
+						        	if(data) {
+						        		$("input[name='code']").val(data.coupon_code);
+						        	}
+						        	
+						        }
+						    })
+						});
+					});
+				</script>
+			]]></add>
+		</operation>	
+		<operation  error="abort">
+			<search position="before"><![CDATA[<?php echo $footer; ?>]]></search>
+			<add><![CDATA[
+				<script type="text/javascript"><!--
+					$('input[name=\'customer\']').autocomplete({
+						'source': function(request, response) {
+							$.ajax({
+								url: 'index.php?route=customer/customer/autocomplete&token=<?php echo $token; ?>&filter_customer=' + encodeURIComponent(request),
+								dataType: 'json',			
+								success: function(json) {
+									response($.map(json, function(item) {
+										return {
+											label: item['name'],
+											value: item['customer_id']
+										}
+									}));
+								}
+							});
+						},
+						'select': function(item) {
+							$('input[name=\'customer\']').val('');
+							$('#coupon-customer' + item['value']).remove();
+							$('#coupon-customer').append('<div id="coupon-customer' + item['value'] + '"><i class="fa fa-minus-circle"></i> ' + item['label'] + '<input type="hidden" name="coupon_customer[]" value="' + item['value'] + '" /></div>');	
+						}
+					});
+
+					$('#coupon-customer').delegate('.fa-minus-circle', 'click', function() {
+						$(this).parent().remove();
+					});
+
+					$('input[name=\'customer_group\']').autocomplete({
+						'source': function(request, response) {
+							$.ajax({
+								url: 'index.php?route=customer/customer_group/autocomplete&token=<?php echo $token; ?>&filter_name=' + encodeURIComponent(request),
+								dataType: 'json',			
+								success: function(json) {
+									response($.map(json, function(item) {
+										return {
+											label: item['name'],
+											value: item['customer_group_id']
+										}
+									}));
+								}
+							});
+						},
+						'select': function(item) {
+							$('input[name=\'customer_group\']').val('');
+							$('#coupon-customer_group' + item['value']).remove();
+							$('#coupon-customer_group').append('<div id="coupon-customer_group' + item['value'] + '"><i class="fa fa-minus-circle"></i> ' + item['label'] + '<input type="hidden" name="coupon_customer_group[]" value="' + item['value'] + '" /></div>');	
+						}
+					});
+
+					$('#coupon-customer_group').delegate('.fa-minus-circle', 'click', function() {
+						$(this).parent().remove();
+					})
+				//--></script>
+				]]></add>
+		</operation>
+	</file>
+	<file name="admin/view/template/marketing/coupon_form.tpl">
+		<operation  error="abort">
+			<search position="replace"><![CDATA[<label class="col-sm-2 control-label" for="input-product">]]></search>
+			<add><![CDATA[
+		              <label class="col-sm-2 control-label" for="input-customer"><span data-toggle="tooltip" title="<?php echo $help_customer_coupon; ?>"><?php echo $entry_customer_coupon; ?></span></label>
+		               <div class="col-sm-10">
+		               	<input type="text" name="customer" value="" id="input-customer" class="form-control"/>
+		               	<div id="coupon-customer" class="well well-sm" style="height: 150px; overflow: auto;">
+		               		<?php if(isset($coupon_customer)){ ?>
+			                    <?php foreach ($coupon_customer as $item) { ?>
+			                    <div id="coupon-customer<?php echo $item['customer_id']; ?>"><i class="fa fa-minus-circle"></i> <?php echo $item['name']; ?>
+			                      <input type="hidden" name="coupon_customer[]" value="<?php echo $item['customer_id']; ?>" />
+			                    </div>
+			                    <?php } ?>
+		                    <?php } ?>
+		                  </div>
+		               </div>
+		            </div>
+		           <div class="form-group">
+		              <label class="col-sm-2 control-label" for="input-customergroup"><span data-toggle="tooltip" title="<?php echo $help_customer_group_coupon; ?>"><?php echo $entry_customer_group_coupon; ?></span></label>
+		              <div class="col-sm-10">
+		              	<input type="text" name="customer_group" class="form-control" id="input-customergroup" value="" />
+
+		              	<div id="coupon-customer_group" class="well well-sm" style="height: 150px; overflow: auto;">
+		               		<?php if(isset($coupon_customer_group)){ ?>
+			                    <?php foreach ($coupon_customer_group as $item) { ?>
+			                    <div id="coupon-customer_group<?php echo $item['customer_group_id']; ?>"><i class="fa fa-minus-circle"></i> <?php echo $item['name']; ?>
+			                      <input type="hidden" name="coupon_customer_group[]" value="<?php echo $item['customer_group_id']; ?>" />
+			                    </div>
+			                    <?php } ?>
+		                    <?php } ?>
+		                </div>
+		              </div>
+		            </div>
+		            <div class="form-group">
+		            <label class="col-sm-2 control-label" for="input-product">
+			]]></add>
+		</operation>
+	</file>
+
+	<!-- 修改oc默认的customer自动完成功能，增加filter_customer, 通关过名字、邮箱、电话或id筛选客户 -->
+	<file name="admin/model/customer/customer.php">
+		<operation  error="abort">
+			<search position="after" offset="3"><![CDATA[function getCustomers]]></search>
+			<add><![CDATA[
+		if (!empty($data['filter_customer'])) {
+			$implode[] = "c.firstname LIKE '%" . $this->db->escape($data['filter_customer']) . "%' OR c.email LIKE '%" . $this->db->escape($data['filter_customer']) . "%' OR c.telephone LIKE '%" . $this->db->escape($data['filter_customer']) . "%' OR c.customer_id LIKE '%" . $this->db->escape($data['filter_customer']) . "%'";
+		}
+			]]></add>
+		</operation>
+	</file>
+	<file name="admin/controller/customer/customer.php">
+		<operation  error="abort">
+			<search position="after"><![CDATA[
+				'filter_name'  => $filter_name,
+			]]></search>
+			<add><![CDATA[
+				'filter_customer'  => $filter_customer,
+				'sort'  => 'c.date_added',
+				'order'  => 'DESC',
+			]]></add>
+		</operation>
+		<operation  error="abort">
+			<search position="replace"><![CDATA[
+		if (isset($this->request->get['filter_name']) || isset($this->request->get['filter_email'])) {
+			]]></search>
+			<add><![CDATA[
+		if (isset($this->request->get['filter_name']) || isset($this->request->get['filter_customer']) || isset($this->request->get['filter_email'])) {
+			if (isset($this->request->get['filter_customer'])) {
+				$filter_customer = $this->request->get['filter_customer'];
+			} else {
+				$filter_customer = '';
+			}
+			]]></add>
+		</operation>
+		<operation  error="abort">
+			<search position="before" offset="3"><![CDATA[
+					'name'              => strip_tags(html_entity_decode($result['name'], ENT_QUOTES, 'UTF-8')),
+			]]></search>
+			<add><![CDATA[
+				if(isset($this->request->get['filter_customer'])){
+					$name = $result['name'] ? $result['name'] : ($result['email'] ? $result['email'] : ($result['telephone'] ? $result['telephone'] : 'ID'.$result['customer_id']));
+				} else {
+					$name = $result['name'];
+				}
+			]]></add>
+		</operation>
+	</file>
+</modification>

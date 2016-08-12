@@ -1,0 +1,133 @@
+<modification>
+	<id>qq_online_customer_service_mobile</id>
+	<version>For OpenCart 2.0.1.1</version>
+    <vqmver>2.5.1</vqmver>
+    <author>GuangDa-TL Mail:support@opencart.cn</author>
+	<email>support@opencart.cn</email>
+	<website>http://www.opencart.cn</website>
+
+	<file name="catalog/controller/common/header.php">
+		<operation>
+			<search position="after"><![CDATA[$this->load->language('common/header'); ]]></search>
+			<add><![CDATA[
+				if (!function_exists('is_mobile') || (function_exists('is_mobile') && !is_mobile())) {
+					$this->load->language('common/online');
+
+					$data['text_weixin_qrcode'] = $this->language->get('text_weixin_qrcode');
+					$data['text_telephone'] = $this->language->get('text_telephone');
+					$data['text_qq'] = $this->language->get('text_qq');
+
+					if($this->config->get('online_telephone')){
+						$data['online_telephone'] = $this->config->get('online_telephone');
+					}else{
+						$data['online_telephone'] = '';
+					}
+					if($this->config->get('online_qq')){
+						$data['online_qq'] = $this->config->get('online_qq');
+					}else{
+						$data['online_qq'] = '';
+					}
+					if($this->config->get('online_qq2')){
+						$data['online_qq2'] = $this->config->get('online_qq2');
+					}else{
+						$data['online_qq2'] = '';
+					}
+					if($this->config->get('online_qq3')){
+						$data['online_qq3'] = $this->config->get('online_qq3');
+					}else{
+						$data['online_qq3'] = '';
+					}
+					if($this->config->get('online_image')){
+						$this->load->model('tool/image');
+						$data['online_image'] = $this->model_tool_image->resize($this->config->get('online_image'), 80, 80);
+					}else{
+						$data['online_image'] = '';
+					}
+					if($this->config->get('online_status')){
+						$data['online_status'] = $this->config->get('online_status');
+					}else{
+						$data['online_status'] = '';
+					}
+				} else {
+					$data['online_status'] = false;
+				}
+			]]></add>
+		</operation>
+	</file>
+	<file name="catalog/view/theme/*/template/common/header.tpl">
+		<operation>
+			<search position="after"><![CDATA[<body class="]]></search>
+			<add><![CDATA[
+				<?php if($online_status){ ?>
+				<link href="catalog/view/theme/default/stylesheet/online.css" rel="stylesheet" type="text/css" />
+
+				<script type="text/javascript"><!--
+				$(document).ready(function(){
+					$("#floatShow").bind("click",function(){
+						$("#floatShow").attr("style","display:none");
+						$("#floatHide").attr("style","display:block");
+						$("#onlineService").animate({width:"show", opacity:"show"}, "fast" ,function(){
+							$("#onlineService").show();
+						});
+						return false;
+					});
+					$("#floatHide").bind("click",function(){
+						$("#floatShow").attr("style","display:block");
+						$("#floatHide").attr("style","display:none");
+						$("#onlineService").animate({width:"hide", opacity:"hide"}, "fast" ,function(){
+							$("#onlineService").hide();
+						});
+						return false;
+					});
+				});
+				//--></script>
+				<div id="online_qq_layer">
+					<div id="online_qq_tab">
+						<a id="floatShow" style="display:block;" href="javascript:void(0);">收缩</a>
+						<a id="floatHide" style="display:none;" href="javascript:void(0);">展开</a>
+					</div>
+					<div id="onlineService">
+						<?php if($online_telephone){ ?>
+						<div class="onlineMenu">
+							<h3 class="tele" style="font-family: 'Open Sans',sans-serif;font-weight: 600;"><?php echo $text_telephone; ?></h3>
+							<ul>
+								<li class="tli phone"><?php echo $online_telephone; ?></li>
+							</ul>
+						</div>
+						<?php } ?>
+						<?php if($online_qq || $online_qq2 || $online_qq3){ ?>
+						<div class="onlineMenu">
+							<h3 class="tQQ" style="font-family: 'Open Sans',sans-serif;font-weight: 600;"><?php echo $text_qq; ?></h3>
+							<ul>
+							<!--
+								<li class="tli zixun">在线咨询</li>
+								-->
+								<?php if($online_qq){ ?>
+								<li><a target="_blank" href="http://wpa.qq.com/msgrd?v=3&uin=<?php echo $online_qq; ?>&site=qq&menu=yes"><img border="0" src="http://wpa.qq.com/pa?p=2:55203824:51" alt="点击这里给我发消息" title="点击这里给我发消息"/></a></li>
+								<?php } ?>
+								<?php if($online_qq2){ ?>
+								<li><a target="_blank" href="http://wpa.qq.com/msgrd?v=3&uin=<?php echo $online_qq2; ?>&site=qq&menu=yes"><img border="0" src="http://wpa.qq.com/pa?p=2:55203824:51" alt="点击这里给我发消息" title="点击这里给我发消息"/></a></li>
+								<?php } ?>
+								<?php if($online_qq3){ ?>
+								<li><a target="_blank" href="http://wpa.qq.com/msgrd?v=3&uin=<?php echo $online_qq3; ?>&site=qq&menu=yes"><img border="0" src="http://wpa.qq.com/pa?p=2:55203824:51" alt="点击这里给我发消息" title="点击这里给我发消息"/></a></li>
+								<?php } ?>
+							</ul>
+						</div>
+						<?php } ?>
+						<?php if($online_image){ ?>
+						<div class="onlineMenu">
+							<h3 class="weixin" style="font-family: 'Open Sans',sans-serif;font-weight: 600;"><?php echo $text_weixin_qrcode; ?></h3>
+							<ul>
+								<li style="height:100px"><img src="<?php echo $online_image; ?>"></img></li>
+							</ul>
+						</div>
+						<?php } ?>
+						<div class="btmbg"></div>
+					</div>
+				</div>
+				<?php } ?>
+			]]></add>
+		</operation>
+	</file>
+
+</modification>

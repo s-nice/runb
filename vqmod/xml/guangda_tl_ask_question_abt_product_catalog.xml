@@ -1,0 +1,216 @@
+<modification>
+	<id>Ask Question About Product</id>
+		<version>For OpenCart V2.0.1.1</version>
+    <vqmver>2.5.1</vqmver>
+   <author>GuangDa-TL Mail:support@opencart.cn</author>
+	<email>support@opencart.cn</email>
+	<website>http://www.opencart.cn</website>
+
+	<file name="admin/language/*/common/menu.php">
+		<operation>
+			<search position="after"><![CDATA[$_['text_backup']]]></search>
+			<add><![CDATA[$_['text_consulting']           = '商品咨询';]]></add>
+		</operation>
+	</file>
+		<file name="admin/controller/common/menu.php">
+		<operation>
+			<search position="after"><![CDATA[$data['text_review']]]></search>
+			<add><![CDATA[		$data['text_consulting'] = $this->language->get('text_consulting');]]></add>
+		</operation>
+		<operation>
+			<search position="after"><![CDATA[$data['review']]]></search>
+			<add><![CDATA[			$data['consulting'] = $this->url->link('catalog/askquestion', 'token=' . $this->session->data['token'], 'SSL');]]></add>
+		</operation>
+	</file>
+	<file name="admin/view/template/common/menu.tpl">
+		<operation>
+			<search position="after"><![CDATA[<li><a href="<?php echo $review; ?>"><?php echo $text_review; ?></a></li>]]></search>
+			<add><![CDATA[        <li><a href="<?php echo $consulting; ?>"><?php echo $text_consulting; ?></a></li>]]></add>
+		</operation>
+	</file>
+
+
+	<file name="catalog/controller/product/product.php">
+		<operation>
+			<search position="before"><![CDATA[$data['review_status'] = $this->config->get('config_review_status');]]></search>
+			<add><![CDATA[
+			$product_id=$this->request->get['product_id'];
+			$getAllProductquestionDisplay=$this->db->query("SELECT * FROM " . DB_PREFIX . "product_questions  where
+			product_id ='".(int)$product_id."' and product_status='1' and product_answer !='' order by question_asked_date desc");
+			$data['showInProductPage']=$getAllProductquestionDisplay->rows;
+
+			$this->load->language('product/askquestion');
+			$data['text_customer_name'] = $this->language->get('text_customer_name');
+			$data['text_question'] = $this->language->get('text_question');
+			$data['text_answer'] = $this->language->get('text_answer');
+			$data['tab_product_question'] = $this->language->get('tab_product_question');
+			$data['entry_question'] = $this->language->get('entry_question');
+			$data['entry_question_title'] = $this->language->get('entry_question_title');
+			$data['text_submit'] = $this->language->get('text_submit');
+			$data['error_name_empty'] = $this->language->get('error_name_empty');
+			$data['error_queston_empty'] = $this->language->get('error_queston_empty');
+			]]></add>
+		</operation>
+	</file>
+
+	<file name="catalog/view/theme/*/template/product/product.tpl">
+		<operation>
+			<search position="before" offset="1"><![CDATA[
+        <li><a href="#tab-review" data-toggle="tab"><?php echo $tab_review; ?></a></li>
+			]]></search>
+			<add><![CDATA[
+        <?php if (isset($tab_product_question)) { ?><li><a href="#tab-question" data-toggle="tab"><?php echo $tab_product_question; ?></a></li><?php } ?>
+				]]></add>
+		</operation>
+		<operation>
+		<search position="before"><![CDATA[
+            <div class="tab-pane active" id="tab-description"><?php echo $description; ?></div>
+		]]></search>
+		<add><![CDATA[
+		<div id="tab-question" class="tab-pane">
+			<div id="displayQuestionAnwser">
+			<?php foreach ($showInProductPage as $valueQuestion) {?>
+				<div class="item">
+					<div class="user">
+						<span class="u-name"><?php echo $text_customer_name;?><?php echo $valueQuestion['user_name'];?></span>
+						<span class="u-level"><font style="color:">  </font></span>
+						<span class="date-ask"><?php echo $valueQuestion['question_asked_date'];?></span>
+					</div>
+						<dl class="ask">
+						<dt><b></b><?php echo $text_question;?></dt>
+						<dd><?php echo $valueQuestion['product_question'];?></dd>
+					</dl>
+						<dl class="answer">
+						<dt><b></b><?php echo $text_answer;?></dt>
+						<dd>
+							<div class="content"><?php echo $valueQuestion['product_answer'];?>
+								<div class="date-answer"><?php echo $valueQuestion['question_answred_date']; ?></div>
+							</div>
+						</dd>
+					</dl>
+				</div>
+				<style type="text/css">
+					#displayQuestionAnwser .item {
+					    padding: 8px 0px;
+					    border-bottom: 1px dotted #DEDEDE;
+					    font: 12px/150% Arial,Verdana,"宋体";
+					    margin: 0px 0px 10px;
+					}
+					#displayQuestionAnwser .user {
+					    color: #9C9A9C;
+					    margin: 0px;
+					    padding: 0px;
+					}
+					#displayQuestionAnwser .user span {
+					    margin-right: 20px;
+					}
+					#displayQuestionAnwser .user .date-ask {
+					    margin-right: 0px;
+					}
+					#displayQuestionAnwser dl {
+							padding: 0px;
+							margin: 0px;
+					    margin-top: 5px;
+					    overflow: hidden;
+					}
+					#displayQuestionAnwser dt {
+					    float: left;
+					    width: auto;
+					    text-align: justify;
+					}
+					#displayQuestionAnwser dd {
+							width: 90%;
+							float: right;
+							overflow: hidden;
+							margin: 0px;
+							padding: 0px;
+					}
+					#displayQuestionAnwser .content {
+					    padding: 0px;
+					    margin-bottom: 0px;
+					    border: 0px;
+					}
+					#displayQuestionAnwser .answer {
+					    color: #FF6500;
+					}
+					.date-answer{
+					    text-align: right;
+					    float: right;
+					    color: #9C9A9C;
+					}
+				</style>
+			<?php } ?>
+			</div>
+			<div class="form-horizontal" id="form-question">
+				<h2><?php echo $entry_question_title; ?></h2>
+				<input type="hidden" name="product_id" id="product_id" value="<?php echo $product_id; ?>" />
+		    <div class="form-group required">
+		      <div class="col-sm-12">
+		        <label class="control-label" for="input-name"><?php echo $entry_name; ?></label>
+		        <input type="text" name="questionerName" value="" id="questionerName" class="form-control" />
+		      </div>
+		    </div>
+		    <div class="form-group required">
+          <div class="col-sm-12">
+            <label class="control-label" for="input-questionAnswer"><?php echo $entry_question; ?></label>
+            <textarea name="questionAnswer" rows="5" id="questionAnswer" class="form-control"></textarea>
+            <div class="help-block"><?php echo $text_note; ?></div>
+          </div>
+        </div>
+				<div class="LoadingQuestion" style="margin-left: 282px;margin-top: -112px;position: absolute; display:none"></div>
+
+				<div class="alert alert-success" id="qusetionSuccess" style="display:none"></div>
+				<div class="alert alert-danger" id="qusetionWarning" style="display:none"></div>
+		    <div class="buttons">
+		      <div class="right"><a id="button-question" class="btn btn-primary"><?php echo $text_submit; ?></a></div>
+		    </div>
+	    </div>
+		</div>
+		]]></add>
+		</operation>
+		<operation>
+	    <search position="after"><![CDATA[
+	    <?php echo $footer; ?>
+	    ]]></search>
+	    <add trim="true"><![CDATA[
+	<script type="text/javascript">
+	$(document).ready(function() {
+		$('#button-question').click(function() {
+			var product_id=$('#product_id').val();
+			var questionerName=$('#questionerName').val();
+			var questionerQuestion=$('#questionAnswer').val();
+			if(questionerName==''){
+				$('#qusetionSuccess').animate({opacity:"hide"},"slow");
+				$('#qusetionWarning').animate({opacity:"hide"},"slow");
+				$('#qusetionWarning').animate({opacity:"show"},"slow").html('<?php echo $error_name_empty; ?>');
+				$('#questionerName').focus();
+			}else if(questionerQuestion==''){
+				$('#qusetionSuccess').animate({opacity:"hide"},"slow");
+				$('#qusetionWarning').animate({opacity:"hide"},"slow");
+				$('#qusetionWarning').animate({opacity:"show"},"slow").html('<?php echo $error_queston_empty; ?>');
+				$('#questionerQuestion').focus();
+			}else{
+				$.ajax({
+					type:'get',
+					url:'index.php?route=product/askquestion/questionAnswer',
+					data:'questionProductId='+product_id+"&questionerName="+questionerName+"&questionerQuestion="+questionerQuestion,
+					beforeSend:function()	{
+						$('.LoadingQuestion').animate({opacity:"show"},"slow").html('<img src="catalog/view/theme/default/image/loading.gif">');
+					},
+					complete:function()	{},
+					success:function(result){
+						$('.LoadingQuestion').animate({opacity:"hide"},"slow");
+						$('#qusetionWarning').animate({opacity:"hide"},"slow");
+						$('#qusetionSuccess').animate({opacity:"show"},"slow").html(result);
+						$('#questionerName').val('');
+						$('#questionAnswer').val('');
+					}
+				});
+			}
+		});
+	});
+	</script>
+			]]></add>
+	  </operation>
+	</file>
+</modification>

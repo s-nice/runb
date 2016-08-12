@@ -1,0 +1,54 @@
+﻿<?xml version="1.0" encoding="UTF-8"?>
+<modification>
+	<id>Add payment info on order success page</id>
+	<version>1.0</version>
+	<vqmver required="true">2.5.0</vqmver>
+	<author>guangdawanglu</author>
+
+	<file name="catalog/language/zh-CN/checkout/success.php">
+		<operation error="skip" info="">
+			<search position="ibefore"><![CDATA[<p>您可以查看历史订单]]></search>
+			<add><![CDATA[<p style="color: #0037f0"><strong>订单号：%d，金额：%s</strong></p><p><strong>%s</strong></p> ]]></add>
+		</operation>
+	</file>
+
+	<file name="catalog/model/account/order.php">
+		<operation error="skip" info="">
+			<search position="after"><![CDATA['payment_method']]></search>
+			<add><![CDATA[
+				'payment_code'         => $order_query->row['payment_code'],
+			]]></add>
+		</operation>
+	</file>
+
+	<file name="catalog/controller/checkout/success.php">
+		<operation error="skip" info="">
+			<search position="before"><![CDATA[unset($this->session->data['shipping_method']);]]></search>
+			<add><![CDATA[
+				$order_id = $this->session->data['order_id'];
+
+				$this->load->model('account/order');
+				$result = $this->model_account_order->getOrder($order_id);
+				if ($result) {
+					$total = $this->currency->format($result['total'], $result['currency_code'], $result['currency_value']);
+					$payment_code = $result['payment_code'];
+					if ($payment_code == 'bank_transfer') {
+						$payment_note = nl2br($this->config->get('bank_transfer_bank' . $this->config->get('config_language_id')));;
+					} else {
+						$payment_note = '';
+					}
+				} else {
+					$total = '';
+					$payment_note = '';
+				}
+			]]></add>
+		</operation>
+
+		<operation error="skip" info="">
+			<search position="replace"><![CDATA[$data['text_message'] = sprintf($this->language->get('text_customer'), $this->url->link('account/account', '', 'SSL'), $this->url->link('account/order', '', 'SSL'), $this->url->link('account/download', '', 'SSL'), $this->url->link('information/contact'));]]></search>
+			<add><![CDATA[
+				$data['text_message'] = sprintf($this->language->get('text_customer'), $order_id, $total, $payment_note, $this->url->link('account/account', '', 'SSL'), $this->url->link('account/order', '', 'SSL'), $this->url->link('account/download', '', 'SSL'), $this->url->link('information/contact'));
+			]]></add>
+		</operation>
+	</file>
+</modification>

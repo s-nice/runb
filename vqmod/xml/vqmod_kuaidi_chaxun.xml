@@ -1,0 +1,200 @@
+<modification>
+	<id>vQmod: 快递单查询</id>
+	<version>for OpenCart V2.0.1.1</version>
+	<vqmver>1.0</vqmver>
+	<author>opencart.cn</author>
+	
+	<!-- 后台信息修改 -->
+	<file name="admin/controller/sale/order.php">
+		<operation>
+    	<search position="before"><![CDATA[
+			$totals = $this->model_sale_order->getOrderTotals($this->request->get['order_id']);
+	    ]]></search>
+	    <add><![CDATA[
+			$this->load->language('module/kuaidi_chaxun');
+			$data['text_kuaidi'] = $this->language->get('text_kuaidi');
+			$data['text_wait'] = $this->language->get('text_wait');
+			$data['tab_kuaidi'] = $this->language->get('tab_kuaidi');
+			$data['button_add_kuaidi'] = $this->language->get('button_add_kuaidi');
+			$data['entry_kuaidi_code'] = $this->language->get('entry_kuaidi_code');
+			$data['entry_kuaidi_number'] = $this->language->get('entry_kuaidi_number');
+			$data['entry_kuaidi_comment'] = $this->language->get('entry_kuaidi_comment');
+
+			//快递数据
+			$data['kd_kuaidi_shuju'] = $this->config->get('kuaidi_chaxun_shuju');
+      ]]></add>
+    </operation>
+	</file>
+	
+	<file name="admin/view/template/sale/order_info.tpl">
+		<operation>
+    	<search position="after" index="1"><![CDATA[
+				$('#history').load('index.php?route=sale/order/history&token=<?php echo $token; ?>&order_id=<?php echo $order_id; ?>');
+			]]></search>
+			<add><![CDATA[
+				$(document).delegate('#kuaidi .pagination a', 'click', function() {
+					$('#kuaidi').load(this.href);
+					return false;
+				});		
+				
+				$('#kuaidi').load('index.php?route=module/kuaidi_chaxun/getList&token=<?php echo $token; ?>&order_id=<?php echo $order_id; ?>');
+				
+				$(document).delegate('#button-kuaidi', 'click', function() {
+					$.ajax({
+						url: 'index.php?route=module/kuaidi_chaxun/add&token=<?php echo $token; ?>&order_id=<?php echo $order_id; ?>',
+						type: 'post',
+						dataType: 'json',
+						data: 'order_status_id=' + encodeURIComponent($('select[name=\'kd_order_status_id\']').val()) + '&kd_kuaidi_number=' + encodeURIComponent($('input[name=\'kd_kuaidi_number\']').val()) + '&kd_kuaidi_code=' + encodeURIComponent($('select[name=\'kd_kuaidi_code\']').val()) +  '&notify=' + encodeURIComponent($('input[name=\'kd_notify\']').attr('checked') ? 1 : 0) + '&append=' + '&kd_comment=' + encodeURIComponent($('textarea[name=\'kd_comment\']').val()),
+						beforeSend: function() {
+							$('#button-kuaidi').button('loading');
+						},
+						complete: function() {
+							$('#button-kuaidi').button('reset');
+						},
+						success: function(json) {
+							$('.alert').remove();
+				
+							if (json['error']) {
+								$('#kuaidi').before('<div class="alert alert-danger"><i class="fa fa-exclamation-circle"></i> ' + json['error'] + ' <button type="button" class="close" data-dismiss="alert">&times;</button></div>');
+							}
+				
+							if (json['success']) {
+								$('#kuaidi').load('index.php?route=module/kuaidi_chaxun/getList&token=<?php echo $token; ?>&order_id=<?php echo $order_id; ?>');
+				
+								$('#kuaidi').before('<div class="alert alert-success"><i class="fa fa-check-circle"></i> ' + json['success'] + ' <button type="button" class="close" data-dismiss="alert">&times;</button></div>');
+				
+								$('textarea[name=\'kd_comment\']').val('');
+							}
+						},
+						error: function(xhr, ajaxOptions, thrownError) {
+							alert(thrownError + "\r\n" + xhr.statusText + "\r\n" + xhr.responseText);
+						}
+					});
+				});
+      ]]></add>
+    </operation>
+    <operation>
+    	<search position="after"><![CDATA[
+          <li class="active"><a href="#tab-history" data-toggle="tab"><?php echo $tab_history; ?></a></li>
+			]]></search>
+			<add><![CDATA[
+          <li><a href="#tab-kuaidi" data-toggle="tab"><?php echo $tab_kuaidi; ?></a></li>
+    	]]></add>
+    </operation>
+		
+		<operation>
+      <search position="before"><![CDATA[
+          <div class="tab-pane active" id="tab-history">
+      ]]></search>
+      <add><![CDATA[
+          <div class="tab-pane" id="tab-kuaidi">
+            <div id="kuaidi"></div>
+            <br />
+            <fieldset>
+              <legend><?php echo $text_kuaidi; ?></legend>
+              <form class="form-horizontal">
+                <div class="form-group">
+                  <label class="col-sm-2 control-label" for="input-comment"><?php echo $entry_kuaidi_code; ?></label>
+                  <div class="col-sm-10">
+                    <select name="kd_kuaidi_code" id="kd_kuaidi_code"  class="form-control">
+			                <?php foreach ($kd_kuaidi_shuju as $kuaidi_code) {
+											//只显示后台设定的状态为可用的快递信息
+			                if($kuaidi_code['status'] == '0'){
+			                	continue;
+			               	}
+							 				?>
+			                <option value="<?php echo $kuaidi_code['code']; ?>"><?php echo $kuaidi_code['name']; ?></option>
+			                <?php } ?>
+			              </select>
+                  </div>
+                </div>
+                <div class="form-group">
+                  <label class="col-sm-2 control-label" for="input-comment"><?php echo $entry_kuaidi_number; ?></label>
+                  <div class="col-sm-10">
+                    <input type="text" name="kd_kuaidi_number" rows="8" id="kd_kuaidi_number" class="form-control"></input>
+                  </div>
+                </div>
+                <div class="form-group">
+                  <label class="col-sm-2 control-label" for="input-comment"><?php echo $entry_comment; ?></label>
+                  <div class="col-sm-10">
+                    <textarea name="kd_comment" rows="8" id="input-comment" class="form-control"></textarea>
+                  </div>
+                </div>
+              </form>
+              <div class="text-right">
+                <button id="button-kuaidi" data-loading-text="<?php echo $text_loading; ?>" class="btn btn-primary"><i class="fa fa-plus-circle"></i> <?php echo $button_history_add; ?></button>
+              </div>
+            </fieldset>
+          </div>
+      ]]></add>
+    </operation>
+	</file>
+	
+	<!-- 前台客户文件修改 -->
+	<file name="catalog/controller/account/order.php">
+		<operation>
+      <search position="after"><![CDATA[
+			$data['text_history'] = $this->language->get('text_history');
+      ]]></search>
+      <add><![CDATA[
+			$data['text_kd_comment'] = $this->language->get('text_kd_comment');
+			$data['text_kuaidi'] = $this->language->get('text_kuaidi');
+			$data['button_view'] = $this->language->get('button_view');
+			//快递单信息
+			$this->load->model('module/kuaidi_chaxun');
+			$order_kuaidis = $this->model_module_kuaidi_chaxun->getOrderShippingtrack($order_id);
+			$this->load->model('module/kuaidi_chaxun');
+			
+			$data['order_kuaidi'] = array();
+			foreach ($order_kuaidis as $order_kuaidi) {
+				$data['order_kuaidi'][] = array(
+					'kd_kuaidi_code'    => $order_kuaidi['kd_kuaidi_code'],
+					'kd_kuaidi_name'    => $this->model_module_kuaidi_chaxun->getKuaidiNameByCode($order_kuaidi['kd_kuaidi_code']),
+					'kd_kuaidi_number'  => $order_kuaidi['kd_kuaidi_number'],
+					'kd_comment'        => $order_kuaidi['kd_comment']
+				);
+			}
+      ]]></add>
+    </operation>
+	</file>
+	
+	<file name="catalog/language/*/account/order.php">
+		<operation>
+      <search position="after"><![CDATA[
+// Text
+      ]]></search>
+      <add><![CDATA[
+			$_['text_kuaidi']      = '快递单信息：';
+			$_['text_kd_comment']      = '说明：';
+      ]]></add>
+  	</operation>
+	</file>
+	
+	<file name="catalog/view/theme/*/template/account/order_info.tpl">
+		<operation>
+			<search position="before"><![CDATA[
+      <?php if ($histories) { ?>
+			]]></search>
+			<add><![CDATA[
+			<!-- 快递单详情 -->
+	  <?php
+	  	foreach ($order_kuaidi as $kuaidi) {
+	  		$order_kuaidi_code = $kuaidi['kd_kuaidi_code'];
+	  		$order_kuaidi_number = $kuaidi['kd_kuaidi_number'];
+	  ?>
+			  <h2><?php echo $text_kuaidi; echo $kuaidi['kd_kuaidi_name'] . '(' . $kuaidi['kd_kuaidi_number'] . ')'; ?></h2>
+			  <?php echo $kuaidi['kd_comment'] ? $text_kd_comment . $kuaidi['kd_comment'] : ''; ?>
+			  <div id="kuaididan_<?php echo $order_kuaidi_code; ?>"><button onClick="$('#kuaididan_<?php echo $order_kuaidi_code; ?>').load('index.php?route=module/kuaidi_chaxun/getTrace&com=<?php echo $order_kuaidi_code; ?>&nu=<?php echo $order_kuaidi_number; ?>')"><?php echo $button_view; ?></button></div>
+			  
+			  <script type="text/javascript">
+				//ajax调取数据信息
+			  </script> 
+			  
+	  <?php 
+	  	} 
+	  ?>
+			  <!-- 快递单详情 -->
+			]]></add>
+		</operation>
+	</file>
+</modification>

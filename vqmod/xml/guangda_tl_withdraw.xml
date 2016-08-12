@@ -1,0 +1,61 @@
+﻿<modification>
+	<id>guangda_tl_withdraw</id>
+	<version>0.5</version>
+	<vqmver>2.5.1</vqmver>
+	<author>opencart.cn</author>
+
+	<file name="catalog/view/theme/*/template/module/account.tpl">
+		<operation>
+			<search position="iafter"><![CDATA[
+		<a href="<?php echo $transaction; ?>" class="list-group-item"><?php echo $text_transaction; ?></a>
+			]]></search>
+			<add><![CDATA[
+		<a href="<?php echo $withdraw_list; ?>" class="list-group-item"><?php echo $text_withdraw; ?></a>
+			]]></add>
+		</operation>
+	</file>
+	<file name="catalog/controller/module/account.php">
+		<operation>
+			<search position="after"><![CDATA[
+		$data['transaction'] = $this->url->link('account/transaction', '', 'SSL');
+			]]></search>
+			<add><![CDATA[
+		$this->load->language('account/withdraw');
+		$data['text_withdraw'] = $this->language->get('text_withdraw');
+		$data['withdraw_list'] = $this->url->link('account/withdraw_list', '', 'SSL');
+			]]></add>
+		</operation>
+	</file>
+
+	<file name="admin/controller/common/menu.php">
+		<operation>
+			<search position="after"><![CDATA[
+		$data['text_return']
+			]]></search>
+			<add><![CDATA[
+		$data['text_withdraw'] = $this->language->get('text_withdraw');
+		$data['withdraw'] = $this->url->link('sale/withdraw', 'token=' . $this->session->data['token'], 'SSL');
+			]]></add>
+		</operation>
+	</file>
+	<file name="admin/language/zh-CN/common/menu.php">
+		<operation>
+			<search position="after"><![CDATA[
+// Text
+			]]></search>
+			<add><![CDATA[
+$_['text_withdraw']                     = '提现列表';
+			]]></add>
+		</operation>
+	</file>
+	<file name="admin/view/template/common/menu.tpl">
+		<operation>
+			<search position="before"><![CDATA[
+		<?php echo $return; ?>
+			]]></search>
+			<add><![CDATA[
+      <li><a href="<?php echo $withdraw; ?>"><?php echo $text_withdraw; ?></a></li>
+			]]></add>
+		</operation>
+	</file>
+</modification>

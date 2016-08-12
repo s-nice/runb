@@ -1,0 +1,129 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<modification>
+  <id>Mobile Theme Patch</id>
+  <version>1.0</version>
+  <vqmver>2.5.1</vqmver>
+  <author>suport@opencart.cn</author> 
+  
+  <!--Add category image for mobile page-->
+  <file name="admin/language/english/catalog/category.php">
+    <operation error="skip">
+      <search position="after"><![CDATA[$_['entry_layout']]]></search>
+      <add><![CDATA[
+        $_['entry_image_mobile'] = 'Mobile Image';
+      ]]></add>
+    </operation>
+  </file>
+
+  <file name="admin/language/zh-CN/catalog/category.php">
+    <operation error="skip">
+      <search position="after"><![CDATA[$_['entry_layout']]]></search>
+      <add><![CDATA[
+        $_['entry_image_mobile'] = '手机图片';
+      ]]></add>
+    </operation>
+  </file>
+
+  <file name="admin/view/template/catalog/category_form.tpl">
+    <operation error="skip">
+      <search position="after" offset="2"><![CDATA[<input type="hidden" name="image" value="<?php echo $image; ?>" id="input-image" />]]></search>
+      <add><![CDATA[
+        <div class="form-group">
+          <label class="col-sm-2 control-label"><?php echo $entry_image_mobile; ?></label>
+          <div class="col-sm-10"><a href="" id="thumb-image-mobile" data-toggle="image" class="img-thumbnail"><img src="<?php echo $thumb_mobile; ?>" alt="" title="" data-placeholder="<?php echo $placeholder; ?>" /></a>
+            <input type="hidden" name="image_mobile" value="<?php echo $image_mobile; ?>" id="input-image-mobile" />
+          </div>
+        </div>
+      ]]></add>
+    </operation>
+  </file>
+
+  <file name="admin/controller/catalog/category.php">
+    <operation error="skip">
+      <search position="after"><![CDATA[$data['entry_layout']]]></search>
+      <add><![CDATA[
+        $data['entry_image_mobile'] = $this->language->get('entry_image_mobile');
+      ]]></add>
+    </operation>
+
+    <operation error="skip" info="Load mobile image">
+      <search position="after"><![CDATA[$data['placeholder'] = $this->model_tool_image->resize('no_image.png', 100, 100);]]></search>
+      <add><![CDATA[
+        if (isset($this->request->post['image_mobile'])) {
+          $data['image_mobile'] = $this->request->post['image_mobile'];
+        } elseif (!empty($category_info)) {
+          $data['image_mobile'] = $this->model_catalog_category->getCategoryMobileImage($this->request->get['category_id']);
+        } else {
+          $data['image_mobile'] = '';
+        }
+
+        if (isset($this->request->post['image_mobile']) && is_file(DIR_IMAGE . $this->request->post['image_mobile'])) {
+          $data['thumb_mobile'] = $this->model_tool_image->resize($this->request->post['image_mobile'], 100, 100);
+        } elseif (!empty($data['image_mobile']) && is_file(DIR_IMAGE . $data['image_mobile'])) {
+          $data['thumb_mobile'] = $this->model_tool_image->resize($data['image_mobile'], 100, 100);
+        } else {
+          $data['thumb_mobile'] = $this->model_tool_image->resize('no_image.png', 100, 100);
+        }
+      ]]></add>
+    </operation>
+  </file>
+
+  <file name="admin/model/catalog/category.php">
+    <operation error="skip" info="Load mobile image">
+      <search position="before"><![CDATA[public function getCategories($data = array()) {]]></search>
+      <add><![CDATA[
+        public function getCategoryMobileImage($category_id) {
+          $mobile_image = '';
+          $query = $this->db->query("SELECT * FROM " . DB_PREFIX . "category_mobile WHERE category_id = '" . (int)$category_id . "'");
+          foreach ($query->rows as $result) {
+            $mobile_image = $result['image'];
+          }
+          return $mobile_image;
+        }
+      ]]></add>
+    </operation>
+
+    <operation error="skip" info="Add mobile image">
+      <search position="before" index="1"><![CDATA[if (isset($data['image'])) {]]></search>
+      <add><![CDATA[
+        if (isset($data['image_mobile']) && !empty($data['image_mobile'])) {
+          $this->db->query("INSERT INTO " . DB_PREFIX . "category_mobile SET category_id = '" . (int)$category_id . "', image = '" . $this->db->escape($data['image_mobile']) . "'");
+        }
+      ]]></add>
+    </operation>
+
+    <operation error="skip" info="Edit mobile image">
+      <search position="before" index="2"><![CDATA[if (isset($data['image'])) {]]></search>
+      <add><![CDATA[
+        $this->db->query("DELETE FROM " . DB_PREFIX . "category_mobile WHERE category_id = '" . (int)$category_id . "'");
+        if (isset($data['image_mobile']) && !empty($data['image_mobile'])) {
+          $this->db->query("INSERT INTO " . DB_PREFIX . "category_mobile SET category_id = '" . (int)$category_id . "', image = '" . $this->db->escape($data['image_mobile']) . "'");
+        }
+      ]]></add>
+    </operation>
+
+    <operation error="skip" info="Remove mobile image">
+      <search position="after"><![CDATA[$this->db->query("DELETE FROM " . DB_PREFIX . "category WHERE category_id = '" . (int)$category_id . "'");]]></search>
+      <add><![CDATA[
+        $this->db->query("DELETE FROM " . DB_PREFIX . "category_mobile WHERE category_id = '" . (int)$category_id . "'");
+      ]]></add>
+    </operation>
+  </file>
+
+  <!--Frontend load category mobile image-->
+  <file name="catalog/model/catalog/category.php">
+    <operation error="skip" info="Load mobile image">
+      <search position="before"><![CDATA[public function getCategoryFilters($category_id) {]]></search>
+      <add><![CDATA[
+        public function getCategoryMobileImage($category_id) {
+          $mobile_image = '';
+          $query = $this->db->query("SELECT * FROM " . DB_PREFIX . "category_mobile WHERE category_id = '" . (int)$category_id . "'");
+          foreach ($query->rows as $result) {
+            $mobile_image = $result['image'];
+          }
+          return $mobile_image;
+        }
+      ]]></add>
+    </operation>
+  </file>
+</modification>

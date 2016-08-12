@@ -1,0 +1,70 @@
+---------- Date: 2016-08-12 10:13:45 ~ IP : ::1 ----------
+REQUEST URI : /admin/
+MOD DETAILS:
+   modFile   : D:\www\90pin\vqmod/xml/gd-mobile-admin-patch.xml
+   id        : Mobile Theme Patch
+   version   : 1.0
+   vqmver    : 2.5.1
+   author    : suport@opencart.cn
+VQModObject::parseMods - Could not resolve path for [admin/language/english/catalog/category.php] (SKIPPED)
+MOD DETAILS:
+   modFile   : D:\www\90pin\vqmod/xml/gd-mobile-theme-patch.xml
+   id        : MOBILE Theme Patch
+   version   : 1.0
+   vqmver    : 2.5.1.1
+   author    : GuangDa email: suport@opencart.cn
+VQModObject::parseMods - Could not resolve path for [catalog/controller/common/footer_top.php] (SKIPPED)
+VQModObject::parseMods - Could not resolve path for [catalog/controller/common/footer_bottom.php] (SKIPPED)
+VQModObject::parseMods - Could not resolve path for [catalog/controller/common/content_home_slider_right.php] (SKIPPED)
+VQModObject::parseMods - Could not resolve path for [catalog/controller/common/content_home_slider_main.php] (SKIPPED)
+MOD DETAILS:
+   modFile   : D:\www\90pin\vqmod/xml/guangda_tl_export_order.xml
+   id        : 
+   version   : For OpenCart 1.5.6.4
+   vqmver    : 1.0
+   author    : guangda tl email: suport@opencart.cn
+VQModObject::parseMods - Could not resolve path for [admin/language/zh-CN/default.php] (SKIPPED)
+MOD DETAILS:
+   modFile   : D:\www\90pin\vqmod/xml/guangda_tl_payment_sel_on_pc_and_mobile.xml
+   id        : Payment_set_on_pc_or_mobile
+   version   : For OpenCart 2.0.1.1
+   vqmver    : 2.5.1.1
+   author    : GuangDa email: suport@opencart.cn
+VQModObject::parseMods - Could not resolve path for [catalog/controller/mobile/payment_method.php] (SKIPPED)
+
+MOD DETAILS:
+   modFile   : D:\www\90pin\vqmod/xml/smart-export-import.xml
+   id        : Smart Export-Import- OpenCart 2.x core file
+   version   : 2.1.x
+   vqmver    : 1.1.0
+   author    : opencart.cn
+VQModObject::parseMods - Could not resolve path for [admin/language/english/common/menu.php] (SKIPPED)
+
+----------------------------------------------------------------------
+
+
+---------- Date: 2016-08-12 10:51:48 ~ IP : ::1 ----------
+REQUEST URI : /index.php?route=product/product&product_id=59
+MOD DETAILS:
+   modFile   : D:\www\90pin\vqmod/xml/guangda_tl_ask_question_abt_product_catalog.xml
+   id        : Ask Question About Product
+   version   : For OpenCart V2.0.1.1
+   vqmver    : 2.5.1
+   author    : GuangDa-TL Mail:support@opencart.cn
+
+File Name    : catalog/view/theme/*/template/product/product.tpl(0)
+VQModObject::applyMod - SEARCH NOT FOUND (ABORTING MOD): <li><a href="#tab-review" data-toggle="tab"><?php echo $tab_review; ?></a></li>
+
+MOD DETAILS:
+   modFile   : D:\www\90pin\vqmod/xml/guangda_tl_order_product_review.xml
+   id        : guangda_tl_order_product_review
+   version   : 0.5
+   vqmver    : 2.5.1
+   author    : www.opencart.cn
+
+File Name    : catalog/view/theme/*/template/product/product.tpl(1)
+VQModObject::applyMod - SEARCH NOT FOUND (ABORTING MOD): <form class="form-horizontal" id="form-review">
+
+----------------------------------------------------------------------
+
+
