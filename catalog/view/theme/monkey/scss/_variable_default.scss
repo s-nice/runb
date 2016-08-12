@@ -1,0 +1,46 @@
+//主要颜色定义
+$main_color: #d42f38;
+$secondary_color: $main_color - 20;
+$page_bg_color: #fff;
+$default_font_color: #020202;
+$a_color: #020202;
+$a_color_hover: $secondary_color;
+
+$h_color: $main_color;
+
+$main_menu_bg_color: $main_color;
+$main_menu_font_color: #fff;
+$main_menu_font_color_hover: #fff;
+
+//button 定义
+$btn_default_color: #fff;
+$btn_default_color_hover: #fff;
+$btn_default_border_color:#020202;
+$btn_default_border_color_hover: $btn_default_border_color + 20;
+$btn_default_bg_color: $btn_default_border_color;
+$btn_default_bg_color_hover: $btn_default_border_color_hover;
+
+$btn_primary_color: #fff;
+$btn_primary_color_hover: #fff;
+$btn_primary_border_color: $main_color;
+$btn_primary_border_color_hover: $main_color - 20;
+$btn_primary_bg_color: $btn_primary_border_color;
+$btn_primary_bg_color_hover: $btn_primary_border_color_hover;
+
+//owl-carousel 定义
+$home_slider_nav_width: 26px;
+$home_slider_nav_height: 50px;
+$menu_slider_nav_bg_color: #999;
+$menu_slider_nav_bg_color_hover: $secondary_color;
+$menu_slider_nav_color: #fff;
+$menu_slider_dot_bg_color: #fff;
+$menu_slider_dot_bg_color_active: $main_color;
+
+// 产品列表定义
+$price_color: $main_color;
+$product_grid_border_color: #e1e1e1;
+$product_grid_border_color_hover: $main_color;
+$product_grid_btn_bg_color: #eee;
+$product_grid_btn_color: $default_font_color;
+$product_grid_btn_bg_color_hover: $main_color;
+$product_grid_btn_color_hover: #fff;
