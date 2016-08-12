@@ -1,0 +1,177 @@
+2015-05-20 11:38:51, INFO, 27.208.221.173, File[ /data/home/qxu1539430137/htdocs/catalog/controller/payment/upop.php ], Line[55]------ ============处理前台请求开始=============== 
+2015-05-20 11:38:51, INFO, 27.208.221.173, File[ /data/home/qxu1539430137/htdocs/catalog/controller/payment/upop.php ], Line[85]------ 前台请求地址为>https://101.231.204.80:5000/gateway/api/frontTransReq.do 
+2015-05-20 11:38:51, INFO, 27.208.221.173, File[ /data/home/qxu1539430137/htdocs/catalog/controller/payment/upop.php ], Line[92]------ -------前台交易自动提交表单>--begin---- 
+2015-05-20 11:38:51, INFO, 27.208.221.173, File[ /data/home/qxu1539430137/htdocs/catalog/controller/payment/upop.php ], Line[93]------ <html>
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+</head>
+<body onload="javascript:document.pay_form.submit();">
+    <form id="pay_form" name="pay_form" action="https://101.231.204.80:5000/gateway/api/frontTransReq.do" method="post">
+	    <input type="hidden" name="version" id="version" value="5.0.0" />
+    <input type="hidden" name="encoding" id="encoding" value="utf-8" />
+    <input type="hidden" name="certId" id="certId" value="124876885185794726986301355951670452718" />
+    <input type="hidden" name="txnType" id="txnType" value="01" />
+    <input type="hidden" name="txnSubType" id="txnSubType" value="01" />
+    <input type="hidden" name="bizType" id="bizType" value="000201" />
+    <input type="hidden" name="frontUrl" id="frontUrl" value="http://opencartshop.cn/index.php?route=checkout/success" />
+    <input type="hidden" name="backUrl" id="backUrl" value="http://opencartshop.cn/upop/BackReceive.php" />
+    <input type="hidden" name="signMethod" id="signMethod" value="01" />
+    <input type="hidden" name="channelType" id="channelType" value="08" />
+    <input type="hidden" name="accessType" id="accessType" value="0" />
+    <input type="hidden" name="merId" id="merId" value="777290058113714" />
+    <input type="hidden" name="orderId" id="orderId" value="20150520113851" />
+    <input type="hidden" name="txnTime" id="txnTime" value="20150520113851" />
+    <input type="hidden" name="txnAmt" id="txnAmt" value="5000" />
+    <input type="hidden" name="currencyCode" id="currencyCode" value="156" />
+    <input type="hidden" name="defaultPayType" id="defaultPayType" value="0001" />
+    <input type="hidden" name="reqReserved" id="reqReserved" value="81" />
+    <input type="hidden" name="signature" id="signature" value="h4g3Lbv6hYP+0gosKOQvWHbyzm2rl+NswSk+r7r/eXi0Zh5rbQvxWLtwhD39yH8U2jjX01s5Cc2tWSytnUR3+Zw6XbVhUtUUVkp5iRPLdtMjxwbVrPGP1HRPkhx4i9fdQNRSQ4VSVplfzt42KhPrTlLq1SRMigNYBFni/EGACT8=" />
+		
+	<div class="buttons">
+  <div class="pull-right">
+    <input type="submit" value="确认订单" id="button-confirm" class="btn btn-primary" />
+  </div>
+</div>
+	
+	
+    </form>
+</body>
+</html> 
+2015-05-20 11:38:51, INFO, 27.208.221.173, File[ /data/home/qxu1539430137/htdocs/catalog/controller/payment/upop.php ], Line[94]------ -------前台交易自动提交表单>--end------- 
+2015-05-20 11:38:51, INFO, 27.208.221.173, File[ /data/home/qxu1539430137/htdocs/catalog/controller/payment/upop.php ], Line[95]------ ============处理前台请求 结束=========== 
+2015-05-20 11:39:26, INFO, 27.208.221.173, File[ /data/home/qxu1539430137/htdocs/catalog/controller/payment/upop.php ], Line[55]------ ============处理前台请求开始=============== 
+2015-05-20 11:39:26, INFO, 27.208.221.173, File[ /data/home/qxu1539430137/htdocs/catalog/controller/payment/upop.php ], Line[85]------ 前台请求地址为>https://101.231.204.80:5000/gateway/api/frontTransReq.do 
+2015-05-20 11:39:26, INFO, 27.208.221.173, File[ /data/home/qxu1539430137/htdocs/catalog/controller/payment/upop.php ], Line[92]------ -------前台交易自动提交表单>--begin---- 
+2015-05-20 11:39:26, INFO, 27.208.221.173, File[ /data/home/qxu1539430137/htdocs/catalog/controller/payment/upop.php ], Line[93]------ <html>
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+</head>
+<body onload="javascript:document.pay_form.submit();">
+    <form id="pay_form" name="pay_form" action="https://101.231.204.80:5000/gateway/api/frontTransReq.do" method="post">
+	    <input type="hidden" name="version" id="version" value="5.0.0" />
+    <input type="hidden" name="encoding" id="encoding" value="utf-8" />
+    <input type="hidden" name="certId" id="certId" value="124876885185794726986301355951670452718" />
+    <input type="hidden" name="txnType" id="txnType" value="01" />
+    <input type="hidden" name="txnSubType" id="txnSubType" value="01" />
+    <input type="hidden" name="bizType" id="bizType" value="000201" />
+    <input type="hidden" name="frontUrl" id="frontUrl" value="http://opencartshop.cn/index.php?route=checkout/success" />
+    <input type="hidden" name="backUrl" id="backUrl" value="http://opencartshop.cn/upop/BackReceive.php" />
+    <input type="hidden" name="signMethod" id="signMethod" value="01" />
+    <input type="hidden" name="channelType" id="channelType" value="08" />
+    <input type="hidden" name="accessType" id="accessType" value="0" />
+    <input type="hidden" name="merId" id="merId" value="777290058113714" />
+    <input type="hidden" name="orderId" id="orderId" value="20150520113926" />
+    <input type="hidden" name="txnTime" id="txnTime" value="20150520113926" />
+    <input type="hidden" name="txnAmt" id="txnAmt" value="5000" />
+    <input type="hidden" name="currencyCode" id="currencyCode" value="156" />
+    <input type="hidden" name="defaultPayType" id="defaultPayType" value="0001" />
+    <input type="hidden" name="reqReserved" id="reqReserved" value="82" />
+    <input type="hidden" name="signature" id="signature" value="PcE9SxY8BwzfsevNdtmicqJmayMwbw11+YNb58CaLbva0tJrLOG20qeIRDP40GnZl4VuVoqxQrsIrwHfDNNDTHV8XmRsaO8q+LqoCL/+5uSKB5ZtlRkaoRyQrk/6Ds4R0wZeX1wTn1JW9L7OERKGSpD5VRnGH0yKG4agKiRndrs=" />
+		
+	<div class="buttons">
+  <div class="pull-right">
+    <input type="submit" value="确认订单" id="button-confirm" class="btn btn-primary" />
+  </div>
+</div>
+	
+	
+    </form>
+</body>
+</html> 
+2015-05-20 11:39:26, INFO, 27.208.221.173, File[ /data/home/qxu1539430137/htdocs/catalog/controller/payment/upop.php ], Line[94]------ -------前台交易自动提交表单>--end------- 
+2015-05-20 11:39:26, INFO, 27.208.221.173, File[ /data/home/qxu1539430137/htdocs/catalog/controller/payment/upop.php ], Line[95]------ ============处理前台请求 结束=========== 
+2015-05-20 11:40:13, INFO, 101.231.204.80, File[ /data/home/qxu1539430137/htdocs/upop/BackReceive.php ], Line[30]------ ============BackReceive.php处理ajax开始=============== 
+2015-05-20 11:40:13, INFO, 101.231.204.80, File[ /data/home/qxu1539430137/htdocs/upop/BackReceive.php ], Line[35]------ accNo-6216***********0018 
+2015-05-20 11:40:13, INFO, 101.231.204.80, File[ /data/home/qxu1539430137/htdocs/upop/BackReceive.php ], Line[35]------ accessType-0 
+2015-05-20 11:40:13, INFO, 101.231.204.80, File[ /data/home/qxu1539430137/htdocs/upop/BackReceive.php ], Line[35]------ bizType-000201 
+2015-05-20 11:40:13, INFO, 101.231.204.80, File[ /data/home/qxu1539430137/htdocs/upop/BackReceive.php ], Line[35]------ certId-3474813271258769001041842579301293446 
+2015-05-20 11:40:13, INFO, 101.231.204.80, File[ /data/home/qxu1539430137/htdocs/upop/BackReceive.php ], Line[35]------ currencyCode-156 
+2015-05-20 11:40:13, INFO, 101.231.204.80, File[ /data/home/qxu1539430137/htdocs/upop/BackReceive.php ], Line[35]------ encoding-utf-8 
+2015-05-20 11:40:13, INFO, 101.231.204.80, File[ /data/home/qxu1539430137/htdocs/upop/BackReceive.php ], Line[35]------ merId-777290058113714 
+2015-05-20 11:40:13, INFO, 101.231.204.80, File[ /data/home/qxu1539430137/htdocs/upop/BackReceive.php ], Line[35]------ orderId-20150520113926 
+2015-05-20 11:40:13, INFO, 101.231.204.80, File[ /data/home/qxu1539430137/htdocs/upop/BackReceive.php ], Line[35]------ queryId-201505201139261758768 
+2015-05-20 11:40:13, INFO, 101.231.204.80, File[ /data/home/qxu1539430137/htdocs/upop/BackReceive.php ], Line[35]------ reqReserved-82 
+2015-05-20 11:40:13, INFO, 101.231.204.80, File[ /data/home/qxu1539430137/htdocs/upop/BackReceive.php ], Line[35]------ respCode-00 
+2015-05-20 11:40:13, INFO, 101.231.204.80, File[ /data/home/qxu1539430137/htdocs/upop/BackReceive.php ], Line[35]------ respMsg-Success! 
+2015-05-20 11:40:13, INFO, 101.231.204.80, File[ /data/home/qxu1539430137/htdocs/upop/BackReceive.php ], Line[35]------ settleAmt-5000 
+2015-05-20 11:40:13, INFO, 101.231.204.80, File[ /data/home/qxu1539430137/htdocs/upop/BackReceive.php ], Line[35]------ settleCurrencyCode-156 
+2015-05-20 11:40:13, INFO, 101.231.204.80, File[ /data/home/qxu1539430137/htdocs/upop/BackReceive.php ], Line[35]------ settleDate-0519 
+2015-05-20 11:40:13, INFO, 101.231.204.80, File[ /data/home/qxu1539430137/htdocs/upop/BackReceive.php ], Line[35]------ signMethod-01 
+2015-05-20 11:40:13, INFO, 101.231.204.80, File[ /data/home/qxu1539430137/htdocs/upop/BackReceive.php ], Line[35]------ traceNo-175876 
+2015-05-20 11:40:13, INFO, 101.231.204.80, File[ /data/home/qxu1539430137/htdocs/upop/BackReceive.php ], Line[35]------ traceTime-20150520113926 
+2015-05-20 11:40:13, INFO, 101.231.204.80, File[ /data/home/qxu1539430137/htdocs/upop/BackReceive.php ], Line[35]------ txnAmt-5000 
+2015-05-20 11:40:13, INFO, 101.231.204.80, File[ /data/home/qxu1539430137/htdocs/upop/BackReceive.php ], Line[35]------ txnSubType-01 
+2015-05-20 11:40:13, INFO, 101.231.204.80, File[ /data/home/qxu1539430137/htdocs/upop/BackReceive.php ], Line[35]------ txnTime-20150520113926 
+2015-05-20 11:40:13, INFO, 101.231.204.80, File[ /data/home/qxu1539430137/htdocs/upop/BackReceive.php ], Line[35]------ txnType-01 
+2015-05-20 11:40:13, INFO, 101.231.204.80, File[ /data/home/qxu1539430137/htdocs/upop/BackReceive.php ], Line[35]------ version-5.0.0 
+2015-05-20 11:40:13, INFO, 101.231.204.80, File[ /data/home/qxu1539430137/htdocs/upop/BackReceive.php ], Line[35]------ signature-fBZmmEbQOAz0S2jTxoJBhGnwPcqwbQJ2GIMsPft/Wn3oA8Keysdzy7MSqazmMUNS/wBzx0QKwS/4fCRYdMOPi3NzULDlk9bgYY3uIZgekeTNEoxKdYyo3BQciLDp/3RI2LTq7AMkjQRFd7gGNKzYu8ttF6iW/77QzVkLJKw4HpNUtj76uO6RFi1XowkS/pyLgUPzkXe87MCvHSyxbjKLZiwFib5VRc5aBp1ogNF+C64mndPibna9xJftjH2xO0ZiRMONjJGE906USWeA50/xOlNS/+Ypf5fxdgd6IqDjblHOfjMS48kKf4GyDfceiJOPfK35xDXiukGuB3vYR+VL3w== 
+2015-05-20 11:40:13, INFO, 101.231.204.80, File[ /data/home/qxu1539430137/htdocs/upop/BackReceive.php ], Line[50]------ 1 
+2015-05-20 11:40:13, INFO, 101.231.204.80, File[ /data/home/qxu1539430137/htdocs/upop/BackReceive.php ], Line[59]------ ============BackReceive.php处理ajax结束=============== 
+2015-05-20 11:47:37, INFO, 27.208.221.173, File[ /data/home/qxu1539430137/htdocs/catalog/controller/payment/upop.php ], Line[55]------ ============处理前台请求开始=============== 
+2015-05-20 11:47:37, INFO, 27.208.221.173, File[ /data/home/qxu1539430137/htdocs/catalog/controller/payment/upop.php ], Line[85]------ 前台请求地址为>https://101.231.204.80:5000/gateway/api/frontTransReq.do 
+2015-05-20 11:47:37, INFO, 27.208.221.173, File[ /data/home/qxu1539430137/htdocs/catalog/controller/payment/upop.php ], Line[92]------ -------前台交易自动提交表单>--begin---- 
+2015-05-20 11:47:37, INFO, 27.208.221.173, File[ /data/home/qxu1539430137/htdocs/catalog/controller/payment/upop.php ], Line[93]------ <html>
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+</head>
+<body onload="javascript:document.pay_form.submit();">
+    <form id="pay_form" name="pay_form" action="https://101.231.204.80:5000/gateway/api/frontTransReq.do" method="post">
+	    <input type="hidden" name="version" id="version" value="5.0.0" />
+    <input type="hidden" name="encoding" id="encoding" value="utf-8" />
+    <input type="hidden" name="certId" id="certId" value="124876885185794726986301355951670452718" />
+    <input type="hidden" name="txnType" id="txnType" value="01" />
+    <input type="hidden" name="txnSubType" id="txnSubType" value="01" />
+    <input type="hidden" name="bizType" id="bizType" value="000201" />
+    <input type="hidden" name="frontUrl" id="frontUrl" value="http://opencartshop.cn/index.php?route=checkout/success" />
+    <input type="hidden" name="backUrl" id="backUrl" value="http://opencartshop.cn/upop/BackReceive.php" />
+    <input type="hidden" name="signMethod" id="signMethod" value="01" />
+    <input type="hidden" name="channelType" id="channelType" value="08" />
+    <input type="hidden" name="accessType" id="accessType" value="0" />
+    <input type="hidden" name="merId" id="merId" value="777290058113714" />
+    <input type="hidden" name="orderId" id="orderId" value="20150520114737" />
+    <input type="hidden" name="txnTime" id="txnTime" value="20150520114737" />
+    <input type="hidden" name="txnAmt" id="txnAmt" value="4000" />
+    <input type="hidden" name="currencyCode" id="currencyCode" value="156" />
+    <input type="hidden" name="defaultPayType" id="defaultPayType" value="0001" />
+    <input type="hidden" name="reqReserved" id="reqReserved" value="83" />
+    <input type="hidden" name="signature" id="signature" value="ofbwRyWhk5dhIszLKLFnIqV+OXK8sCwzhJ6iYTktxWMPw1t2gs1OoiG5TZ/9RZHeISnYdBKlNq/VI/YhO9/K/ZbBcJ7u9wntd4vqw2hwppyk69KQiRErixtSmbarGSqssh8ywnQh5uavWB9IIfAmFqOS9gJyjlUJfvy1t30inHI=" />
+		
+	<div class="buttons">
+  <div class="pull-right">
+    <input type="submit" value="确认订单" id="button-confirm" class="btn btn-primary" />
+  </div>
+</div>
+	
+	
+    </form>
+</body>
+</html> 
+2015-05-20 11:47:37, INFO, 27.208.221.173, File[ /data/home/qxu1539430137/htdocs/catalog/controller/payment/upop.php ], Line[94]------ -------前台交易自动提交表单>--end------- 
+2015-05-20 11:47:37, INFO, 27.208.221.173, File[ /data/home/qxu1539430137/htdocs/catalog/controller/payment/upop.php ], Line[95]------ ============处理前台请求 结束=========== 
+2015-05-20 11:48:09, INFO, 101.231.204.80, File[ /data/home/qxu1539430137/htdocs/upop/BackReceive.php ], Line[64]------ ============BackReceive.php处理ajax开始=============== 
+2015-05-20 11:48:09, INFO, 101.231.204.80, File[ /data/home/qxu1539430137/htdocs/upop/BackReceive.php ], Line[69]------ accNo-6216***********0018 
+2015-05-20 11:48:09, INFO, 101.231.204.80, File[ /data/home/qxu1539430137/htdocs/upop/BackReceive.php ], Line[69]------ accessType-0 
+2015-05-20 11:48:09, INFO, 101.231.204.80, File[ /data/home/qxu1539430137/htdocs/upop/BackReceive.php ], Line[69]------ bizType-000201 
+2015-05-20 11:48:09, INFO, 101.231.204.80, File[ /data/home/qxu1539430137/htdocs/upop/BackReceive.php ], Line[69]------ certId-3474813271258769001041842579301293446 
+2015-05-20 11:48:09, INFO, 101.231.204.80, File[ /data/home/qxu1539430137/htdocs/upop/BackReceive.php ], Line[69]------ currencyCode-156 
+2015-05-20 11:48:09, INFO, 101.231.204.80, File[ /data/home/qxu1539430137/htdocs/upop/BackReceive.php ], Line[69]------ encoding-utf-8 
+2015-05-20 11:48:09, INFO, 101.231.204.80, File[ /data/home/qxu1539430137/htdocs/upop/BackReceive.php ], Line[69]------ merId-777290058113714 
+2015-05-20 11:48:09, INFO, 101.231.204.80, File[ /data/home/qxu1539430137/htdocs/upop/BackReceive.php ], Line[69]------ orderId-20150520114737 
+2015-05-20 11:48:09, INFO, 101.231.204.80, File[ /data/home/qxu1539430137/htdocs/upop/BackReceive.php ], Line[69]------ queryId-201505201147371542568 
+2015-05-20 11:48:09, INFO, 101.231.204.80, File[ /data/home/qxu1539430137/htdocs/upop/BackReceive.php ], Line[69]------ reqReserved-83 
+2015-05-20 11:48:09, INFO, 101.231.204.80, File[ /data/home/qxu1539430137/htdocs/upop/BackReceive.php ], Line[69]------ respCode-00 
+2015-05-20 11:48:09, INFO, 101.231.204.80, File[ /data/home/qxu1539430137/htdocs/upop/BackReceive.php ], Line[69]------ respMsg-Success! 
+2015-05-20 11:48:09, INFO, 101.231.204.80, File[ /data/home/qxu1539430137/htdocs/upop/BackReceive.php ], Line[69]------ settleAmt-4000 
+2015-05-20 11:48:09, INFO, 101.231.204.80, File[ /data/home/qxu1539430137/htdocs/upop/BackReceive.php ], Line[69]------ settleCurrencyCode-156 
+2015-05-20 11:48:09, INFO, 101.231.204.80, File[ /data/home/qxu1539430137/htdocs/upop/BackReceive.php ], Line[69]------ settleDate-0519 
+2015-05-20 11:48:09, INFO, 101.231.204.80, File[ /data/home/qxu1539430137/htdocs/upop/BackReceive.php ], Line[69]------ signMethod-01 
+2015-05-20 11:48:09, INFO, 101.231.204.80, File[ /data/home/qxu1539430137/htdocs/upop/BackReceive.php ], Line[69]------ traceNo-154256 
+2015-05-20 11:48:09, INFO, 101.231.204.80, File[ /data/home/qxu1539430137/htdocs/upop/BackReceive.php ], Line[69]------ traceTime-20150520114737 
+2015-05-20 11:48:09, INFO, 101.231.204.80, File[ /data/home/qxu1539430137/htdocs/upop/BackReceive.php ], Line[69]------ txnAmt-4000 
+2015-05-20 11:48:09, INFO, 101.231.204.80, File[ /data/home/qxu1539430137/htdocs/upop/BackReceive.php ], Line[69]------ txnSubType-01 
+2015-05-20 11:48:09, INFO, 101.231.204.80, File[ /data/home/qxu1539430137/htdocs/upop/BackReceive.php ], Line[69]------ txnTime-20150520114737 
+2015-05-20 11:48:09, INFO, 101.231.204.80, File[ /data/home/qxu1539430137/htdocs/upop/BackReceive.php ], Line[69]------ txnType-01 
+2015-05-20 11:48:09, INFO, 101.231.204.80, File[ /data/home/qxu1539430137/htdocs/upop/BackReceive.php ], Line[69]------ version-5.0.0 
+2015-05-20 11:48:09, INFO, 101.231.204.80, File[ /data/home/qxu1539430137/htdocs/upop/BackReceive.php ], Line[69]------ signature-R/gCm9fsD1OWZf5b6hFBvgzKtGTMkDEptP3/ouhNtYK0zSK/lntjBoLI+WyNr/uh8sT9X4+s5JL9pydKRQdhjJ3p2RVrGDD6WcCrbZcA5DlAV+oxC7bZH89vuWhJ3EyaHJxUQdMM9azpIjJ9b1QGsmQ6Dkq9zVrqQyIFssyQl6SI9xFOtYLwPCNC2pv+b0TA4yrHCEfpNlKF7MIr8TcSSENE6SS7i5m+fdjlyRHfymmiEQf3VXGZMQvcBv7Rx1I1SUNKY1Wvhhqi+u1GKAGVMXf/uzMyZduadnJfpqhsnsjtaXb7qCGnXNq6OBKEFWxJPtcYDbMlk/KBwAsFPDN9rw== 
+2015-05-20 11:48:09, INFO, 101.231.204.80, File[ /data/home/qxu1539430137/htdocs/upop/BackReceive.php ], Line[84]------ 1 
+2015-05-20 11:48:09, INFO, 101.231.204.80, File[ /data/home/qxu1539430137/htdocs/upop/BackReceive.php ], Line[98]------ ============BackReceive.php处理ajax结束=============== 
